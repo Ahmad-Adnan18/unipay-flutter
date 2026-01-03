@@ -300,12 +300,25 @@ unipay-flutter/
 
 ## 📝 Akun Demo
 
-### Admin Panel
+### Admin Panel (Web)
 - **Email:** Buat sendiri via `php artisan make:filament-user`
 - **URL:** `http://127.0.0.1:8000/admin`
 
-### Mahasiswa (Test)
-- Daftar melalui Admin Panel atau buat via API.
+### Mahasiswa (Mobile App)
+Setelah menjalankan `php artisan db:seed`, gunakan akun berikut untuk login:
+- **Email:** `test@example.com`
+- **Password:** `password`
+
+> 💡 **Catatan:** Jika password tidak berhasil, reset via Tinker:
+> ```bash
+> php artisan tinker
+> ```
+> ```php
+> $user = \App\Models\User::where('email', 'test@example.com')->first();
+> $user->password = bcrypt('password');
+> $user->save();
+> exit
+> ```
 
 ---
 
