@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:screen_brightness/screen_brightness.dart';
+// screen_brightness removed - incompatible with Gradle 8+
 import 'package:intl/intl.dart';
 import 'package:unipay/core/theme.dart';
 import '../providers/transaction_provider.dart';
@@ -119,21 +119,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Future<void> _setBrightness(double brightness) async {
-    try {
-      // ignore: deprecated_member_use
-      await ScreenBrightness().setScreenBrightness(brightness);
-    } catch (e) {
-      debugPrint('Failed to set brightness: $e');
-    }
+    // Brightness control removed for Gradle 8+ compatibility
+    // Original: await ScreenBrightness().setScreenBrightness(brightness);
   }
 
   Future<void> _resetBrightness() async {
-    try {
-      // ignore: deprecated_member_use
-      await ScreenBrightness().resetScreenBrightness();
-    } catch (e) {
-      debugPrint('Failed to reset brightness: $e');
-    }
+    // Brightness control removed for Gradle 8+ compatibility
+    // Original: await ScreenBrightness().resetScreenBrightness();
   }
 
   @override
