@@ -2,5 +2,5 @@
 
 import 'dart:io';
 
-// Production URL
+// Local URL
 String get baseUrl => 'https://uni.nandevv.com/api';
