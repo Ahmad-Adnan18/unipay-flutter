@@ -57,13 +57,31 @@ class TransactionController extends Controller
         
         try {
             $midtransResponse = $this->midtrans->chargeQr($orderId, (int)$bill->amount);
+            \Illuminate\Support\Facades\Log::info('Midtrans Response for Order ' . $orderId, (array)$midtransResponse);
             
             // Assuming Midtrans response structure (adjust based on actual response)
-            $qrString = $midtransResponse->actions[0]->url ?? ''; 
+            $qrString = '';
+            if (isset($midtransResponse->actions) && is_array($midtransResponse->actions)) {
+                foreach ($midtransResponse->actions as $action) {
+                    if ($action->name === 'generate-qr-code') {
+                        $qrString = $action->url;
+                        break;
+                    }
+                }
+            }
             
-            // Adjust to robustly find QR string if needed
-            if (isset($midtransResponse->qr_string)) {
-                $qrString = $midtransResponse->qr_string;
+            // Fallback to direct url or qr_string
+            if (empty($qrString)) {
+                $rawQr = $midtransResponse->actions[0]->url ?? $midtransResponse->qr_string ?? '';
+                
+                // If it is a URL, use it
+                if (filter_var($rawQr, FILTER_VALIDATE_URL)) {
+                    $qrString = $rawQr;
+                } else {
+                    // It is a specific payload (string), invalid for Simulator URL field.
+                    // Solution: Wrap it in a QR Generator API to give User a valid Image URL
+                    $qrString = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' . urlencode($rawQr);
+                }
             }
 
             $expiryTime = now()->addMinutes(15);

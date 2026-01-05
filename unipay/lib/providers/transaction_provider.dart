@@ -37,6 +37,16 @@ class TransactionNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>?
     }
   }
 
+  Future<String?> getDownloadUrl(int transactionId) async {
+    try {
+      final client = _ref.read(apiClientProvider).client;
+      final response = await client.get('/transactions/$transactionId/receipt-url');
+      return response.data['url'];
+    } catch (e) {
+      return null;
+    }
+  }
+
   void reset() {
     state = const AsyncValue.data(null);
   }

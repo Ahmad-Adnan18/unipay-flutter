@@ -2,56 +2,43 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\BillResource\Pages;
-use App\Filament\Resources\BillResource\RelationManagers;
-use App\Models\Bill;
+use App\Filament\Resources\PembayaranResource\Pages;
+use App\Filament\Resources\PembayaranResource\RelationManagers;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class BillResource extends Resource
+class PembayaranResource extends Resource
 {
-    protected static ?string $model = Bill::class;
+    protected static ?string $model = User::class;
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationLabel = 'Pembayaran';
+
+    protected static ?string $modelLabel = 'Pembayaran Mahasiswa';
+
+    protected static ?string $pluralModelLabel = 'Pembayaran Mahasiswa';
+
+    protected static ?string $slug = 'pembayaran';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload()
+                Forms\Components\TextInput::make('name')
                     ->required()
-                    ->label('Mahasiswa'),
-                Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->label('Jumlah Tagihan'),
-                Forms\Components\TextInput::make('title')
-                    ->required()
-                    ->maxLength(255)
-                    ->label('Judul Tagihan'),
-                Forms\Components\DatePicker::make('due_date')
-                    ->required()
-                    ->label('Jatuh Tempo'),
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'UNPAID' => 'Belum Lunas',
-                        'PAID' => 'Lunas',
-                    ])
-                    ->required()
-                    ->default('UNPAID'),
-                Forms\Components\DateTimePicker::make('locked_at')
-                    ->label('Kunci Tagihan (Opsional)'),
+                    ->readOnly()
+                    ->label('Nama Mahasiswa'),
+                Forms\Components\TextInput::make('nim')
+                    ->label('NIM')
+                    ->readOnly(),
+                Forms\Components\TextInput::make('major')
+                    ->label('Prodi')
+                    ->readOnly(),
             ]);
     }
 
@@ -59,56 +46,37 @@ class BillResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Mahasiswa')
+                Tables\Columns\ImageColumn::make('profile_photo_path')
+                    ->label('Foto')
+                    ->circular(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nama Mahasiswa')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('title')
-                    ->label('Judul')
+                Tables\Columns\TextColumn::make('nim')
+                    ->label('NIM')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('amount')
-                    ->label('Jumlah')
-                    ->money('IDR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('major')
+                    ->label('Prodi')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('bills_count')
+                    ->counts('bills')
+                    ->label('Total Tagihan'),
+                 Tables\Columns\TextColumn::make('unpaid_bills_count')
+                    ->counts('bills', fn ($query) => $query->where('status', 'UNPAID'))
+                    ->label('Tagihan Belum Lunas')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'PAID' => 'success',
-                        'UNPAID' => 'warning',
-                        default => 'gray',
-                    }),
-                Tables\Columns\TextColumn::make('due_date')
-                    ->label('Jatuh Tempo')
-                    ->date('d M Y')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Dibuat')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success'),
             ])
-            ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'UNPAID' => 'Belum Lunas',
-                        'PAID' => 'Lunas',
-                    ]),
+                //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('mark_paid')
-                    ->label('Lunas')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(fn (Bill $record) => $record->update(['status' => 'PAID']))
-                    ->visible(fn (Bill $record) => $record->status === 'UNPAID'),
+                Tables\Actions\EditAction::make()
+                    ->label('Detail Tagihan'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                //
             ])
             ->headerActions([
                 Tables\Actions\Action::make('create_bulk')
@@ -129,20 +97,24 @@ class BillResource extends Resource
                         
                         Forms\Components\Select::make('user_id')
                             ->label('Mahasiswa')
-                            ->relationship('user', 'name')
+                            ->relationship('user', 'name') // Attempting to use relationship might fail here as User doesn't belong to User in this way? 
+                            // Actually, relationship() works on the Model of the RESOURCE usually. But here the resource is User.
+                            // However, we are in a Form that is not attached to a record yet.
+                            // Better to use options() with search.
+                            ->options(User::all()->pluck('name', 'id'))
                             ->searchable()
-                            ->preload()
                             ->visible(fn (Forms\Get $get) => $get('scope') === 'single')
                             ->required(fn (Forms\Get $get) => $get('scope') === 'single'),
 
-                        Forms\Components\TextInput::make('major_target')
+                        Forms\Components\Select::make('major_target')
                             ->label('Prodi')
+                            ->options(\App\Models\Major::all()->pluck('name', 'name'))
                             ->visible(fn (Forms\Get $get) => in_array($get('scope'), ['prodi', 'prodi_semester']))
                             ->required(fn (Forms\Get $get) => in_array($get('scope'), ['prodi', 'prodi_semester'])),
 
-                        Forms\Components\TextInput::make('semester_target')
+                        Forms\Components\Select::make('semester_target')
                             ->label('Semester')
-                            ->numeric()
+                            ->options(array_combine(range(1, 14), range(1, 14)))
                             ->visible(fn (Forms\Get $get) => in_array($get('scope'), ['semester', 'prodi_semester']))
                             ->required(fn (Forms\Get $get) => in_array($get('scope'), ['semester', 'prodi_semester'])),
 
@@ -198,25 +170,21 @@ class BillResource extends Resource
                             ->success()
                             ->send();
                     }),
-                    
-                Tables\Actions\CreateAction::make()
-                    ->label('Buat Tagihan Tunggal'),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\BillsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBills::route('/'),
-            'create' => Pages\CreateBill::route('/create'),
-            'edit' => Pages\EditBill::route('/{record}/edit'),
+            'index' => Pages\ListPembayarans::route('/'),
+            'edit' => Pages\EditPembayaran::route('/{record}/edit'),
         ];
     }
 }

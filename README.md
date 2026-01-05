@@ -16,9 +16,11 @@ UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah trans
 
 ### 🏢 Admin Panel (Web)
 *   **Dashboard Statistik:** Grafik total pemasukan dan jumlah tagihan pending.
-*   **Manajemen Tagihan:** Buat, edit, dan pantau tagihan mahasiswa.
+*   **Pembayaran Mahasiswa:** Manajemen tagihan yang berpusat pada mahasiswa. Lihat total tagihan per mahasiswa dengan mudah.
+*   **Data Prodi:** Manajemen Program Studi untuk standarisasi data (Dropdown selection).
+*   **Tagihan Massal:** Buat tagihan untuk satu angkatan atau satu prodi sekaligus dengan mudah.
 *   **Monitoring Transaksi:** Cek status pembayaran secara real-time.
-*   **Student Management:** Kelola data akun mahasiswa.
+*   **Student Management:** Kelola data akun mahasiswa dengan foto profil dan status aktif.
 
 ---
 
@@ -233,10 +235,13 @@ MIDTRANS_IS_PRODUCTION=false
 
 1. Buka Aplikasi **UniPay**, pilih tagihan, klik **Bayar**.
 2. Akan muncul **QR Code**.
-3. Screenshot atau foto QR Code tersebut.
-4. Buka **[Midtrans Simulator](https://simulator.sandbox.midtrans.com/qris/index)**.
-5. Upload foto QR Code dan klik **Pay**.
-6. Kembali ke Aplikasi, status akan berubah menjadi **LUNAS** secara otomatis.
+3. **Cara 1 (Simulator Mobile):** Scan QR tersebut pakai aplikasi Simulator (Android).
+4. **Cara 2 (Paling Ampuh - Mock Notification):**
+    *   Lihat **Order ID** di layar aplikasi (misal: `UKT-123-xxxxx`).
+    *   Buka [Midtrans Mock Notification](https://simulator.sandbox.midtrans.com/index).
+    *   Pilih **Mock Notification**, masukkan **Order ID**, pilih Status **Settlement**, klik **Apply**.
+5. Kembali ke Aplikasi, status akan berubah menjadi **LUNAS** seketika (via Polling).
+6. **Unduh Bukti Bayar:** Pergi ke menu Riwayat, pilih tagihan Lunas, klik "Unduh Bukti Bayar" untuk dapat PDF.
 
 ---
 

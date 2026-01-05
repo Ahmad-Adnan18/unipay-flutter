@@ -9,13 +9,32 @@ use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+
+class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_admin && $this->is_active;
+    }
 
     public function bills()
     {
         return $this->hasMany(Bill::class);
+    }
+
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->profile_photo_path
+            ? asset('storage/' . $this->profile_photo_path)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 
     /**
@@ -25,8 +44,16 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nim',
+        'major',
         'email',
         'password',
+        'semester',
+        'phone',
+        'address',
+        'profile_photo_path',
+        'is_active',
+        'is_admin',
     ];
 
     /**

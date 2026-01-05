@@ -8,141 +8,232 @@ import '../providers/auth_provider.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authNotifier = ref.watch(authProvider.notifier);
     final user = authNotifier.userData;
 
-    // Use initials or 'U' if name unavailable
     final initials = user != null && user['name'] != null
         ? (user['name'] as String).split(' ').take(2).map((e) => e[0].toUpperCase()).join()
         : 'U';
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
-      appBar: AppBar(
-        title: const Text('Profil Saya'),
-        elevation: 0,
-      ),
+      backgroundColor: Colors.grey.shade50,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Avatar Profile
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.primaryGreen, width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryGreen,
+            // Header Section
+            Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                // Background
+                Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryGreen, AppTheme.primaryGreen.withOpacity(0.8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
                   ),
                 ),
+                
+                // AppBar Placeholder
+                //  Positioned(
+                //   top: 50,
+                //   left: 20,
+                //   child: GestureDetector(
+                //     onTap: () => Navigator.pop(context),
+                //     child: const Icon(Icons.arrow_back, color: Colors.white),
+                //   )
+                // ),
+                 const Positioned(
+                  top: 50,
+                  child: Text('Profil Saya', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))
+                ),
+
+                // Avatar & Name (Centered)
+                Positioned(
+                  bottom: -60,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))
+                          ],
+                          image: user?['profile_photo_url'] != null
+                              ? DecorationImage(
+                                  image: NetworkImage(user!['profile_photo_url']),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: user?['profile_photo_url'] == null 
+                            ? Center(
+                                child: Text(
+                                  initials,
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryGreen,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 70),
+
+            Text(
+              user?['name'] ?? 'Mahasiswa',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              user?['email'] ?? '-',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.green.shade100),
+              ),
+              child: Text(
+                'Mahasiswa Aktif',
+                style: TextStyle(color: AppTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 24),
+
+            const SizedBox(height: 32),
             
-            // User Info
-            _buildInfoCard(
-              context,
-              icon: Icons.person_outline,
-              label: 'Nama Lengkap',
-              value: user?['name'] ?? 'Mahasiswa',
-            ),
-             const SizedBox(height: 16),
-            _buildInfoCard(
-              context,
-              icon: Icons.email_outlined,
-              label: 'Email',
-              value: user?['email'] ?? 'email@mahasiswa.com',
-            ),
-            const SizedBox(height: 16),
-            _buildInfoCard(
-              context,
-              icon: Icons.school_outlined,
-              label: 'Program Studi',
-              value: 'Teknik Informatika', // Hardcoded for MVP as it's not in User model yet
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                    _buildSectionHeader("Informasi Akademik"),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                           BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                        ]
+                      ),
+                      child: Column(
+                        children: [
+                           _buildListTile(Icons.badge_outlined, 'NIM', user?['nim'] ?? '-'),
+                           Divider(height: 1, indent: 56, color: Colors.grey.shade100),
+                           _buildListTile(Icons.school_outlined, 'Program Studi', user?['major'] ?? '-'),
+                           Divider(height: 1, indent: 56, color: Colors.grey.shade100),
+                           _buildListTile(Icons.calendar_today_outlined, 'Semester', user?['semester']?.toString() ?? '-'),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    _buildSectionHeader("Kontak"),
+                    const SizedBox(height: 12),
+                     Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                           BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                        ]
+                      ),
+                      child: Column(
+                        children: [
+                           _buildListTile(Icons.phone_outlined, 'No HP', user?['phone'] ?? '-'),
+                           Divider(height: 1, indent: 56, color: Colors.grey.shade100),
+                           _buildListTile(Icons.location_on_outlined, 'Alamat', user?['address'] ?? '-'),
+                        ],
+                      ),
+                    ),
+                 ],
+              ),
             ),
             
             const SizedBox(height: 48),
             
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                   // Show confirmation dialog logic could go here
-                   await ref.read(authProvider.notifier).logout();
-                   // MainScreen/AuthWrapper handles redirect
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade50,
-                  foregroundColor: Colors.red,
-                  side: BorderSide(color: Colors.red.shade200),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                     await ref.read(authProvider.notifier).logout();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Keluar Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-                icon: const Icon(Icons.logout),
-                label: const Text('KELUAR APLIKASI'),
               ),
             ),
             
             const SizedBox(height: 24),
-            Text(
-              'UniPay v1.0.0',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(BuildContext context, {required IconData icon, required String label, required String value}) {
-    return Container(
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title, 
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    );
+  }
+
+  Widget _buildListTile(IconData icon, String label, String value) {
+    return Padding(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey.shade600),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
+          ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                const SizedBox(height: 2),
+                Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              ],
+            ),
           ),
         ],
       ),

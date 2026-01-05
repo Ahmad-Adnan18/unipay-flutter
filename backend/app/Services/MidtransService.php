@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Midtrans\Config;
 use Midtrans\CoreApi;
+use Midtrans\Transaction;
 
 class MidtransService
 {
@@ -23,9 +24,9 @@ class MidtransService
                 'order_id' => $orderId,
                 'gross_amount' => $amount,
             ],
-            'qris' => [
-                'acquirer' => 'gopay',
-            ],
+            // 'qris' => [
+            //     'acquirer' => 'gopay',
+            // ],
         ];
 
         try {
@@ -38,7 +39,7 @@ class MidtransService
     public function checkStatus($orderId)
     {
         try {
-            return CoreApi::transactionStatus($orderId);
+            return Transaction::status($orderId);
         } catch (\Exception $e) {
             throw new \Exception('Midtrans Check Status Failed: ' . $e->getMessage());
         }

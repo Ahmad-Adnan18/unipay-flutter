@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -232,12 +233,61 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                   border: Border.all(color: Colors.grey.shade200, width: 2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: QrImageView(
-                                  data: qrString,
-                                  version: QrVersions.auto,
-                                  size: 220.0,
+                              child: qrString.startsWith('http')
+                                  ? Image.network(
+                                      qrString,
+                                      width: 220,
+                                      height: 220,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return SizedBox(
+                                          width: 220,
+                                          height: 220,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress.expectedTotalBytes != null
+                                                  ? loadingProgress.cumulativeBytesLoaded /
+                                                      loadingProgress.expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : QrImageView(
+                                      data: qrString,
+                                      version: QrVersions.auto,
+                                      size: 220.0,
+                                    ),
+                              ),
+                              const SizedBox(height: 16),
+                              
+                              // Copy Button - Always visible for debugging/simulator
+                              TextButton.icon(
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: qrString));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Data QR Code disalin!')),
+                                  );
+                                },
+                                icon: const Icon(Icons.copy, size: 16),
+                                label: const Text('Salin Data QR (Simulator)'),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade100,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
                               ),
+                              
+                              if (!qrString.startsWith('http'))
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    'QR Data (Raw): ${qrString.substring(0, 10)}...', 
+                                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                                  ),
+                                ),
+
                               const SizedBox(height: 24),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -269,21 +319,49 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             ],
                           );
                         },
-                        error: (err, stack) => Column(
-                          children: [
-                            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                            const SizedBox(height: 16),
-                            const Text('Terjadi Kesalahan', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(err.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () async {
-                                 await ref.read(transactionProvider.notifier).createTransaction(widget.billId);
-                              },
-                              child: const Text('Coba Lagi'),
-                            ),
-                          ],
-                        ),
+                        error: (err, stack) {
+                          final errorMessage = err.toString();
+                          final isAlreadyPaid = errorMessage.contains('400') || errorMessage.toLowerCase().contains('lunas');
+
+                          if (isAlreadyPaid) {
+                            return Column(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.green, size: 80),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Tagihan Lunas',
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryGreen,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text('Tagihan ini sudah dibayar.', textAlign: TextAlign.center),
+                                const SizedBox(height: 24),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('KEMBALI'),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                              const SizedBox(height: 16),
+                              const Text('Terjadi Kesalahan', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text(errorMessage.replaceAll('Exception:', ''), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () async {
+                                   await ref.read(transactionProvider.notifier).createTransaction(widget.billId);
+                                },
+                                child: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          );
+                        },
                         loading: () => const Padding(
                           padding: EdgeInsets.all(48.0),
                           child: CircularProgressIndicator(),
