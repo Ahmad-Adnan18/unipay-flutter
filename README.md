@@ -133,9 +133,11 @@ php artisan db:seed
 
 #### 2.8 Buat Akun Admin untuk Filament
 ```bash
-php artisan make:filament-user
+php artisan db:seed --class=ProductionAdminSeeder
 ```
-Ikuti prompt untuk membuat akun admin (email, name, password).
+**Login Admin Panel:**
+- Email: `admin@gmail.com`
+- Password: `password`
 
 #### 2.9 Jalankan Server Backend
 ```bash
