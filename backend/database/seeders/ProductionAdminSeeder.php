@@ -12,11 +12,11 @@ class ProductionAdminSeeder extends Seeder
     public function run(): void
     {
         // Hapus user jika sudah ada (biar bisa reset password)
-        User::where('email', 'adnan@gmail.com')->delete();
+        User::where('email', 'admin@gmail.com')->delete();
 
         User::create([
-            'name' => 'Ahmad Adnan',
-            'email' => 'adnan@gmail.com',
+            'name' => 'Admin',
+            'email' => 'admin@gmail.com',
             'password' => Hash::make('password'), // Ganti sesuai keinginan nanti
             'email_verified_at' => now(),
             'is_admin' => true,   // PENTING: Filament butuh ini
