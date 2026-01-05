@@ -61,7 +61,7 @@ Sebelum mulai, pastikan sudah terinstall:
 ### 📥 Step 1: Clone Repository
 
 ```bash
-Copy Project ini
+https://github.com/Ahmad-Adnan18/unipay-flutter.git
 ```
 
 ---
@@ -330,7 +330,10 @@ Setelah menjalankan `php artisan db:seed`, gunakan akun berikut untuk login:
 ## 👥 Tim Pengembang
 
 **Tugas Akhir Mata Kuliah Pemrograman Berbasis Platform**
-
+1. Ahmad Adnan 
+2. Aziz Wahyudin
+3. Karan Kemal
+4. Intan Eka
 ---
 
 ## 📞 Butuh Bantuan?
