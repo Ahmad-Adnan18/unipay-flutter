@@ -1,33 +1,30 @@
-// lib/screens/main_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unipay/core/theme.dart';
+import 'package:unipay/providers/nav_provider.dart';
 import 'package:unipay/screens/dashboard_screen.dart';
 import 'package:unipay/screens/history_screen.dart';
 import 'package:unipay/screens/profile_screen.dart';
+import 'package:unipay/screens/bills_screen.dart'; // Import BillsScreen
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(bottomNavIndexProvider);
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+    final List<Widget> screens = const [
+      DashboardScreen(),
+      BillsScreen(), // Index 1
+      HistoryScreen(), // Index 2
+      ProfileScreen(), // Index 3
+    ];
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    HistoryScreen(),
-    ProfileScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+        index: currentIndex,
+        children: screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -51,17 +48,20 @@ class _MainScreenState extends State<MainScreen> {
             type: BottomNavigationBarType.fixed,
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             unselectedLabelStyle: const TextStyle(fontSize: 12),
-            currentIndex: _currentIndex,
+            currentIndex: currentIndex,
             onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              ref.read(bottomNavIndexProvider.notifier).state = index;
             },
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.grid_view_rounded),
                 activeIcon: Icon(Icons.grid_view_rounded),
                 label: 'Beranda',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.description_outlined),
+                activeIcon: Icon(Icons.description_rounded),
+                label: 'Tagihan',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.receipt_long_rounded),

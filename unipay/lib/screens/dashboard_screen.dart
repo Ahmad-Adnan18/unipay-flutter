@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:unipay/core/theme.dart';
+import 'package:unipay/providers/nav_provider.dart';
+import 'package:unipay/screens/bills_screen.dart';
+import 'package:unipay/screens/help_screen.dart';
+import 'package:unipay/screens/news_detail_screen.dart';
+import 'package:unipay/screens/news_list_screen.dart';
 import '../providers/bill_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/news_service.dart';
@@ -103,25 +108,38 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     _buildQuickAction(context, Icons.receipt_long, 'Tagihan', Colors.blue, 
                       onTap: () {
-                         // Scroll to bills or navigate
+                         // Switch to Bills tab (Index 1)
+                         ref.read(bottomNavIndexProvider.notifier).state = 1;
                       }),
                     _buildQuickAction(context, Icons.history, 'Riwayat', Colors.orange,
                       onTap: () {
-                        // Navigate logic handled by main screen usually
+                        // Switch to History tab (Index 2)
+                        ref.read(bottomNavIndexProvider.notifier).state = 2;
                       }),
                     _buildQuickAction(context, Icons.newspaper, 'Berita', Colors.purple,
-                      onTap: () {}),
+                      onTap: () {
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => const NewsListScreen()));
+                      }),
                     _buildQuickAction(context, Icons.help_outline, 'Bantuan', Colors.green,
-                      onTap: () {}),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpScreen()));
+                      }),
                   ],
                 ),
 
                 const SizedBox(height: 32),
 
                 // Unpaid Bills Section
-                const Text(
-                  'Tagihan Belum Lunas',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Tagihan Belum Lunas',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    // Show "Lihat Semua" only if we have logic for it, or rely on Quick Action.
+                    // For now, let's keep it clean or add it if bills count > 3
+                  ],
                 ),
                 const SizedBox(height: 12),
                 billsAsync.when(
@@ -130,14 +148,29 @@ class DashboardScreen extends ConsumerWidget {
                     if (unpaidBills.isEmpty) {
                       return _buildEmptyState();
                     }
-                    return ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: unpaidBills.length,
-                      itemBuilder: (context, index) {
-                         final bill = unpaidBills[index];
-                         return _buildBillCard(context, bill, currencyFormatter);
-                      },
+                    
+                    // Show max 3 bills logic
+                    final displayBills = unpaidBills.take(3).toList();
+                    
+                    return Column(
+                      children: [
+                        ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: displayBills.length,
+                          itemBuilder: (context, index) {
+                             final bill = displayBills[index];
+                             return _buildBillCard(context, bill, currencyFormatter);
+                          },
+                        ),
+                        if (unpaidBills.length > 3)
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const BillsScreen()));
+                            }, 
+                            child: const Text("Lihat Semua Tagihan"),
+                          ),
+                      ],
                     );
                   },
                   error: (err, _) => const Text('Gagal memuat tagihan'),
@@ -162,54 +195,102 @@ class DashboardScreen extends ConsumerWidget {
                         itemCount: newsList.length,
                         itemBuilder: (context, index) {
                           final news = newsList[index];
-                          return Container(
-                            width: 250,
-                            margin: const EdgeInsets.only(right: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4, offset: const Offset(0,2))
-                              ]
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                      image: news['image_url'] != null ? DecorationImage(
-                                        image: NetworkImage(news['image_url']),
-                                        fit: BoxFit.cover,
-                                      ) : null,
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => NewsDetailScreen(news: news)));
+                            },
+                            child: Container(
+                              width: 280,
+                              margin: const EdgeInsets.only(right: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08), 
+                                    blurRadius: 12, 
+                                    offset: const Offset(0,4)
+                                  )
+                                ]
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Stack(
+                                  children: [
+                                    // Background Image
+                                    Positioned.fill(
+                                      child: news['image_url'] != null 
+                                        ? Image.network(
+                                            news['image_url'],
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Container(color: Colors.grey.shade200),
                                     ),
-                                    child: news['image_url'] == null 
-                                      ? Center(child: Icon(Icons.image, color: Colors.grey.shade400)) 
-                                      : null,
-                                  ),
+                                    
+                                    // Gradient Overlay
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.1),
+                                              Colors.black.withOpacity(0.8),
+                                            ],
+                                            stops: const [0.5, 0.7, 1.0],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Content
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primaryGreen,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                'KABAR KAMPUS',
+                                                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              news['title'],
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold, 
+                                                fontSize: 14,
+                                                height: 1.3
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              news['created_at'],
+                                              style: TextStyle(color: Colors.grey.shade300, fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        news['title'],
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        news['created_at'],
-                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
+                              ),
                             ),
                           );
                         },
@@ -238,6 +319,7 @@ class DashboardScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withOpacity(0.2)), 
             ),
             child: Icon(icon, color: color, size: 28),
           ),
@@ -269,6 +351,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildBillCard(BuildContext context, Map<String, dynamic> bill, NumberFormat formatter) {
      final date = DateTime.parse(bill['due_date']);
+     // ignore: unused_local_variable
      final dateFormatted = DateFormat('d MMM yyyy', 'id_ID').format(date);
      
      return Card(

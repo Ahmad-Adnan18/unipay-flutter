@@ -147,6 +147,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Scaffold(
       backgroundColor: AppTheme.primaryGreen,
       appBar: AppBar(
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         title: const Text('Pembayaran'),
         elevation: 0,
         backgroundColor: Colors.transparent,

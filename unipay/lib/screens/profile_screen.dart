@@ -1,6 +1,7 @@
 // lib/screens/profile_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unipay/core/theme.dart';
 import '../providers/auth_provider.dart';
@@ -21,6 +22,8 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(toolbarHeight: 0, elevation: 0, backgroundColor: Colors.transparent, systemOverlayStyle: SystemUiOverlayStyle.light),
       body: SingleChildScrollView(
         child: Column(
           children: [

@@ -1,6 +1,7 @@
 // lib/screens/login_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unipay/core/theme.dart';
 import '../providers/auth_provider.dart';
@@ -57,6 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.primaryGreen,
+      appBar: AppBar(toolbarHeight: 0, elevation: 0, backgroundColor: Colors.transparent, systemOverlayStyle: SystemUiOverlayStyle.light),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -65,10 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo Section
-                const Icon(
-                  Icons.account_balance_wallet,
-                  size: 80,
-                  color: Colors.white,
+                Image.asset(
+                  'assets/images/logo-putih.png',
+                  height: 100,
                 ),
                 const SizedBox(height: 16),
                 const Text(
