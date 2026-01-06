@@ -15,6 +15,8 @@ import '../services/news_service.dart';
 import '../widgets/ktm_card.dart';
 import 'payment_screen.dart';
 
+import 'package:flutter/services.dart';
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -31,10 +33,16 @@ class DashboardScreen extends ConsumerWidget {
       decimalDigits: 0,
     );
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light, // for iOS
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        body: SafeArea(
+          child: RefreshIndicator(
           onRefresh: () {
             ref.refresh(newsProvider);
             return ref.refresh(billsProvider.future);
@@ -318,7 +326,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildQuickAction(BuildContext context, IconData icon, String label, Color color, {required VoidCallback onTap}) {

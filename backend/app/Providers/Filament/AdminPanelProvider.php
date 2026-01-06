@@ -27,6 +27,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandLogo(fn () => new \Illuminate\Support\HtmlString(
+                '<div class="flex items-center gap-2">
+                    <img src="' . asset('assets/logo-app.png') . '" class="h-8" />
+                    <span class="font-bold text-xl">Unipay</span>
+                </div>'
+            ))
+            ->favicon(asset('assets/logo-app.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -37,8 +44,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Widgets\AccountWidget::class,
+                // Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
