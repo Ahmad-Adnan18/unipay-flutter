@@ -54,8 +54,8 @@ class HistoryScreen extends ConsumerWidget {
                         ),
                       ),
                       
-                      const Positioned(
-                        top: 60, // Adjust based on AppBar height + status bar
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 20,
                         child: Text(
                           'Riwayat Pembayaran',
                           style: TextStyle(

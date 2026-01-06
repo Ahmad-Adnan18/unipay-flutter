@@ -155,8 +155,13 @@ class NewsDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 24),
                         // Content
                         HtmlWidget(
-                          news['content'] ?? '',
-                          textStyle: const TextStyle(fontSize: 16, height: 1.8, color: Colors.black87),
+                          // Convert newlines to breaks and wrap for styling
+                          '<div style="text-align: justify;">${(news['content'] ?? '').toString().replaceAll('\n', '<br/>')}</div>',
+                          textStyle: const TextStyle(
+                            fontSize: 14, 
+                            height: 1.6, 
+                            color: Colors.black87,
+                          ),
                         ),
                         const SizedBox(height: 40),
                         // Related News Header

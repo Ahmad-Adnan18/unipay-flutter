@@ -42,8 +42,8 @@ class HelpScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  const Positioned(
-                    top: 60,
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 20,
                     child: Text(
                       'Bantuan',
                       style: TextStyle(

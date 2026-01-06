@@ -41,10 +41,15 @@ class DashboardScreen extends ConsumerWidget {
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 // Header
                 Row(
                   children: [
@@ -177,12 +182,18 @@ class DashboardScreen extends ConsumerWidget {
                   loading: () => const Center(child: CircularProgressIndicator()),
                 ),
 
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
                 
                 // News Carousel
-                const Text(
-                  'Kabar Kampus',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Kabar Kampus',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -191,6 +202,7 @@ class DashboardScreen extends ConsumerWidget {
                     data: (newsList) {
                       if (newsList.isEmpty) return const Center(child: Text("Belum ada berita"));
                       return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         scrollDirection: Axis.horizontal,
                         itemCount: newsList.length,
                         itemBuilder: (context, index) {
