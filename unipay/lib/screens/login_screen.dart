@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unipay/core/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -57,109 +58,220 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppTheme.primaryGreen,
-      appBar: AppBar(toolbarHeight: 0, elevation: 0, backgroundColor: Colors.transparent, systemOverlayStyle: SystemUiOverlayStyle.light),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo Section
-                Image.asset(
-                  'assets/images/logo-putih.png',
-                  height: 100,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'UniPay',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: Stack(
+            children: [
+              // Header Gradient Background
+              Container(
+                height: MediaQuery.of(context).size.height * 0.45,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryGreen,
+                      Color(0xFF004D40), // Darker shade of green
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sistem Pembayaran Uang Kuliah',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                       Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo-putih.png',
+                          height: 80,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'UniPay',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                          shadows: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                      ),
+                       const SizedBox(height: 8),
+                      Text(
+                        'Sistem Pembayaran Uang Kuliah',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.8),
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 50), // Spacer for the card overlap
+                    ],
                   ),
                 ),
-                const SizedBox(height: 48),
+              ),
 
-                // Card Section
-                Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Selamat Datang',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: AppTheme.primaryGreen,
+              // Login Form Card
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.38,
+                left: 24,
+                right: 24,
+                bottom: 0, // Allow expansion
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email Mahasiswa',
-                            prefixIcon: Icon(Icons.email_outlined),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Selamat Datang!',
+                            style: GoogleFonts.poppins( // Assuming default font or style
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                          const SizedBox(height: 8),
+                           Text(
+                            'Silakan masuk untuk melanjutkan',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          
+                          // Email Field
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: TextField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                              decoration: InputDecoration(
+                                hintText: 'Email Mahasiswa',
+                                prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryGreen),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              ),
                             ),
                           ),
-                          obscureText: _obscurePassword,
-                        ),
-                        const SizedBox(height: 32),
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: authState.isLoading ? null : _handleLogin,
-                            child: authState.isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(color: Colors.white),
-                                  )
-                                : const Text('MASUK'),
+                          const SizedBox(height: 20),
+                          
+                          // Password Field
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: TextField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                prefixIcon: Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                    color: Colors.grey[400],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 40),
+
+                          // Login Button
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: authState.isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryGreen,
+                                foregroundColor: Colors.white,
+                                elevation: 5,
+                                shadowColor: AppTheme.primaryGreen.withOpacity(0.4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: authState.isLoading
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : const Text(
+                                      'MASUK',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: Text(
+                        'Versi 1.0.0',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Versi 1.0.0',
-                  style: TextStyle(color: Colors.white.withOpacity(0.6)),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
