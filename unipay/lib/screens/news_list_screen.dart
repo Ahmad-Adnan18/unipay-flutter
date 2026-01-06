@@ -42,9 +42,9 @@ class NewsListScreen extends ConsumerWidget {
                         ),
                       ),
                       
-                      const Positioned(
-                        top: 60,
-                        child: Text(
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        child: const Text(
                           'Kabar Kampus',
                           style: TextStyle(
                             color: Colors.white,

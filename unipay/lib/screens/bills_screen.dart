@@ -57,9 +57,9 @@ class BillsScreen extends ConsumerWidget {
                         ),
                       ),
                       
-                      const Positioned(
-                        top: 60,
-                        child: Text(
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        child: const Text(
                           'Semua Tagihan',
                           style: TextStyle(
                             color: Colors.white,

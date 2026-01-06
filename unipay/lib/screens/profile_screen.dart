@@ -54,9 +54,9 @@ class ProfileScreen extends ConsumerWidget {
                 //     child: const Icon(Icons.arrow_back, color: Colors.white),
                 //   )
                 // ),
-                 const Positioned(
-                  top: 50,
-                  child: Text('Profil Saya', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))
+                 Positioned(
+                  top: MediaQuery.of(context).padding.top + 20,
+                  child: const Text('Profil Saya', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))
                 ),
 
                 // Avatar & Name (Centered)
