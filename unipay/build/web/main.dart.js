@@ -116426,7 +116426,7 @@ A.aUe.prototype={
 $1(a){return A.beI()},
 $S:694}
 A.o4.prototype={
-aiR(){var s,r=A.beW("http://127.0.0.1:8000/api",B.x2,A.a_(["Accept","application/json"],t.N,t.z),B.x2),q=new A.Xa(A.a([B.Z4],t.i6))
+aiR(){var s,r=A.beW("https://uni.nandevv.com/api",B.x2,A.a_(["Accept","application/json"],t.N,t.z),B.x2),q=new A.Xa(A.a([B.Z4],t.i6))
 q.F(q,B.ah6)
 s=new A.al6($,q,$,new A.aoS(51200),!1)
 s.a5G$=r
