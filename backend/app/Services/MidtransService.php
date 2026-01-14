@@ -44,4 +44,48 @@ class MidtransService
             throw new \Exception('Midtrans Check Status Failed: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Charge via Bank Transfer (Virtual Account)
+     * Supported banks: bca, bni, bri, mandiri, permata, cimb
+     */
+    public function chargeVA(string $orderId, int $amount, string $bank): object
+    {
+        $params = [
+            'payment_type' => 'bank_transfer',
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $amount,
+            ],
+            'bank_transfer' => [
+                'bank' => $bank,
+            ],
+        ];
+
+        try {
+            return CoreApi::charge($params);
+        } catch (\Exception $e) {
+            throw new \Exception('Midtrans VA Charge Failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Charge via E-Wallet (GoPay, ShopeePay)
+     */
+    public function chargeEwallet(string $orderId, int $amount, string $type): object
+    {
+        $params = [
+            'payment_type' => $type,
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $amount,
+            ],
+        ];
+
+        try {
+            return CoreApi::charge($params);
+        } catch (\Exception $e) {
+            throw new \Exception('Midtrans E-Wallet Charge Failed: ' . $e->getMessage());
+        }
+    }
 }

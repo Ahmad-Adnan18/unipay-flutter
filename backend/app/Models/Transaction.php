@@ -12,7 +12,9 @@ class Transaction extends Model
     protected $fillable = [
         'bill_id',
         'order_id',
+        'payment_type',
         'qr_string',
+        'payment_instructions',
         'expiry_time',
         'payment_status',
         'midtrans_response',

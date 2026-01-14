@@ -12,12 +12,13 @@ class TransactionNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>?
 
   TransactionNotifier(this._ref) : super(const AsyncValue.data(null));
 
-  Future<void> createTransaction(int billId) async {
+  Future<void> createTransaction(int billId, String paymentType) async {
     state = const AsyncValue.loading();
     try {
       final client = _ref.read(apiClientProvider).client;
       final response = await client.post('/pay', data: {
         'bill_id': billId,
+        'payment_type': paymentType,
       });
 
       state = AsyncValue.data(response.data['data']);

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-// screen_brightness removed - incompatible with Gradle 8+
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:unipay/core/theme.dart';
 import '../providers/transaction_provider.dart';
 
@@ -14,12 +14,14 @@ class PaymentScreen extends ConsumerStatefulWidget {
   final int billId;
   final String billTitle;
   final double amount;
+  final String paymentType;
 
   const PaymentScreen({
     super.key,
     required this.billId,
     required this.billTitle,
     required this.amount,
+    required this.paymentType,
   });
 
   @override
@@ -27,50 +29,46 @@ class PaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
-  Timer? _pollingTimer;
+  bool _isCheckingStatus = false;
 
   @override
   void initState() {
     super.initState();
-    _setBrightness(1.0);
     Future.microtask(() {
-      // ignore: unused_result
-      ref.read(transactionProvider.notifier).createTransaction(widget.billId);
+      ref.read(transactionProvider.notifier).createTransaction(widget.billId, widget.paymentType);
     });
   }
 
   @override
   void dispose() {
-    _stopPolling();
-    _resetBrightness();
     super.dispose();
   }
 
-  void _startPolling(String orderId) {
-    if (_pollingTimer != null) return;
-    
-    // Poll every 5 seconds
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      await _checkStatus(orderId);
-    });
-  }
-
-  void _stopPolling() {
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
-  }
-
   Future<void> _checkStatus(String orderId) async {
+    if (_isCheckingStatus) return;
+    
+    setState(() => _isCheckingStatus = true);
+    
     final status = await ref.read(transactionProvider.notifier).checkStatus(orderId);
     
     if (mounted) {
-       if (status == 'settlement' || status == 'capture') {
-         _stopPolling();
-         _showSuccessDialog();
-       } else if (status == 'expire') {
-         _stopPolling();
-         await ref.refresh(transactionProvider.notifier).createTransaction(widget.billId);
-       }
+      setState(() => _isCheckingStatus = false);
+      
+      if (status == 'settlement' || status == 'capture') {
+        _showSuccessDialog();
+      } else if (status == 'expire') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Transaksi kadaluwarsa. Silakan buat transaksi baru.')),
+        );
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Status: ${status ?? 'pending'} - Belum ada pembayaran'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -106,7 +104,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop(); 
-                    Navigator.of(context).pop(); 
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Pop to bills screen
                   },
                   child: const Text('KEMBALI KE DASHBOARD'),
                 ),
@@ -118,14 +117,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     );
   }
 
-  Future<void> _setBrightness(double brightness) async {
-    // Brightness control removed for Gradle 8+ compatibility
-    // Original: await ScreenBrightness().setScreenBrightness(brightness);
-  }
-
-  Future<void> _resetBrightness() async {
-    // Brightness control removed for Gradle 8+ compatibility
-    // Original: await ScreenBrightness().resetScreenBrightness();
+  String _getPaymentTypeLabel(String type) {
+    switch (type) {
+      case 'qris': return 'QRIS';
+      case 'gopay': return 'GoPay';
+      case 'shopeepay': return 'ShopeePay';
+      case 'va_bca': return 'BCA Virtual Account';
+      case 'va_bni': return 'BNI Virtual Account';
+      case 'va_bri': return 'BRI Virtual Account';
+      case 'va_mandiri': return 'Mandiri Virtual Account';
+      case 'va_permata': return 'Permata Virtual Account';
+      default: return type.toUpperCase();
+    }
   }
 
   @override
@@ -137,18 +140,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       decimalDigits: 0,
     );
 
-    ref.listen(transactionProvider, (previous, next) {
-      if (next.hasValue && next.value != null) {
-        final orderId = next.value!['order_id'];
-        _startPolling(orderId);
-      }
-    });
-
     return Scaffold(
       backgroundColor: AppTheme.primaryGreen,
       appBar: AppBar(
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        title: const Text('Pembayaran'),
+        title: Text(_getPaymentTypeLabel(widget.paymentType)),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -158,7 +154,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Ticket Container
+              // Payment Card
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -197,164 +193,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       transactionState.when(
                         data: (data) {
                           if (data == null) return const SizedBox.shrink();
-                          
-                          final qrString = data['qr_string'];
-                          final expiryTime = DateTime.parse(data['expiry_time']);
-                          final isExpired = DateTime.now().isAfter(expiryTime);
-
-                          if (isExpired) {
-                             return Column(
-                               children: [
-                                 Icon(Icons.broken_image_outlined, size: 80, color: Colors.grey.shade400),
-                                 const SizedBox(height: 16),
-                                 const Text('QR Code Kadaluwarsa'),
-                                 const SizedBox(height: 16),
-                                 ElevatedButton(
-                                   onPressed: () async {
-                                     await ref.refresh(transactionProvider.notifier).createTransaction(widget.billId);
-                                   }, 
-                                   child: const Text('Generate Ulang')
-                                 )
-                               ],
-                             );
-                          }
-
-                          return Column(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade200, width: 2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              child: qrString.startsWith('http')
-                                  ? Image.network(
-                                      qrString,
-                                      width: 220,
-                                      height: 220,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return SizedBox(
-                                          width: 220,
-                                          height: 220,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              value: loadingProgress.expectedTotalBytes != null
-                                                  ? loadingProgress.cumulativeBytesLoaded /
-                                                      loadingProgress.expectedTotalBytes!
-                                                  : null,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : QrImageView(
-                                      data: qrString,
-                                      version: QrVersions.auto,
-                                      size: 220.0,
-                                    ),
-                              ),
-                              const SizedBox(height: 16),
-                              
-                              // Copy Button - Always visible for debugging/simulator
-                              TextButton.icon(
-                                onPressed: () {
-                                  Clipboard.setData(ClipboardData(text: qrString));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Data QR Code disalin!')),
-                                  );
-                                },
-                                icon: const Icon(Icons.copy, size: 16),
-                                label: const Text('Salin Data QR (Simulator)'),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade100,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                ),
-                              ),
-                              
-                              if (!qrString.startsWith('http'))
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    'QR Data (Raw): ${qrString.substring(0, 10)}...', 
-                                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                                  ),
-                                ),
-
-                              const SizedBox(height: 24),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.qr_code_scanner, color: Colors.grey, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Scan QRIS untuk membayar',
-                                    style: TextStyle(color: Colors.grey.shade600),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'Order ID: ${data['order_id']}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold, 
-                                    fontFamily: 'Courier',
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
+                          return _buildPaymentContent(data);
                         },
-                        error: (err, stack) {
-                          final errorMessage = err.toString();
-                          final isAlreadyPaid = errorMessage.contains('400') || errorMessage.toLowerCase().contains('lunas');
-
-                          if (isAlreadyPaid) {
-                            return Column(
-                              children: [
-                                const Icon(Icons.check_circle, color: Colors.green, size: 80),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Tagihan Lunas',
-                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryGreen,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text('Tagihan ini sudah dibayar.', textAlign: TextAlign.center),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('KEMBALI'),
-                                ),
-                              ],
-                            );
-                          }
-
-                          return Column(
-                            children: [
-                              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                              const SizedBox(height: 16),
-                              const Text('Terjadi Kesalahan', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text(errorMessage.replaceAll('Exception:', ''), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () async {
-                                   await ref.read(transactionProvider.notifier).createTransaction(widget.billId);
-                                },
-                                child: const Text('Coba Lagi'),
-                              ),
-                            ],
-                          );
-                        },
+                        error: (err, stack) => _buildErrorContent(err),
                         loading: () => const Padding(
                           padding: EdgeInsets.all(48.0),
                           child: CircularProgressIndicator(),
@@ -366,31 +207,345 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
               
               const SizedBox(height: 24),
-              // Manual Check Button outside ticket
-              transactionState.hasValue && transactionState.value != null ?
-              TextButton.icon(
-                 onPressed: () async {
-                   final data = transactionState.value!;
-                   await _checkStatus(data['order_id']);
-                   if (mounted) {
-                     ScaffoldMessenger.of(context).showSnackBar(
-                       const SnackBar(
-                         content: Text('Memeriksa status pembayaran...'),
-                         behavior: SnackBarBehavior.floating,
-                       ),
-                     );
-                   }
-                 },
-                 icon: const Icon(Icons.sync, color: Colors.white),
-                 label: const Text(
-                   'Cek Status Pembayaran', 
-                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-                 ),
-               ) : const SizedBox.shrink(),
+              
+              // Check Status Button
+              transactionState.hasValue && transactionState.value != null
+                ? ElevatedButton.icon(
+                    onPressed: _isCheckingStatus 
+                      ? null 
+                      : () => _checkStatus(transactionState.value!['order_id']),
+                    icon: _isCheckingStatus 
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.refresh),
+                    label: Text(_isCheckingStatus ? 'Memeriksa...' : 'Cek Status Pembayaran'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.primaryGreen,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  )
+                : const SizedBox.shrink(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPaymentContent(Map<String, dynamic> data) {
+    final paymentType = data['payment_type'] ?? widget.paymentType;
+    
+    // QRIS or E-Wallet with QR
+    if (paymentType == 'qris' || (data['qr_string'] != null && data['qr_string'].toString().isNotEmpty)) {
+      return _buildQrisContent(data);
+    }
+    
+    // Virtual Account
+    if (paymentType.toString().startsWith('va_')) {
+      return _buildVaContent(data);
+    }
+    
+    // E-Wallet with deeplink
+    if (paymentType == 'gopay' || paymentType == 'shopeepay') {
+      return _buildEwalletContent(data);
+    }
+    
+    return const Text('Metode pembayaran tidak dikenali');
+  }
+
+  Widget _buildQrisContent(Map<String, dynamic> data) {
+    final qrString = data['qr_string'] ?? '';
+    
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade200, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: qrString.toString().startsWith('http')
+            ? Image.network(
+                qrString,
+                width: 220,
+                height: 220,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const SizedBox(
+                    width: 220,
+                    height: 220,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return SizedBox(
+                    width: 220,
+                    height: 220,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.grey.shade400, size: 48),
+                          const SizedBox(height: 8),
+                          Text('Gagal memuat QR', style: TextStyle(color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              )
+            : QrImageView(
+                data: qrString,
+                version: QrVersions.auto,
+                size: 220.0,
+              ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.qr_code_scanner, color: Colors.grey, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Scan QRIS untuk membayar',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Order ID: ${data['order_id']}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontFamily: 'Courier',
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVaContent(Map<String, dynamic> data) {
+    final instructions = data['payment_instructions'] ?? {};
+    final vaNumber = instructions['va_number'] ?? '-';
+    final bank = instructions['bank'] ?? '';
+    
+    return Column(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(Icons.account_balance, size: 40, color: Colors.blue.shade700),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Nomor Virtual Account',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              vaNumber,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+                fontFamily: 'Courier',
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.copy, size: 20),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: vaNumber));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Nomor VA disalin!')),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            bank.toString().toUpperCase(),
+            style: TextStyle(
+              color: Colors.blue.shade700,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.amber.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.amber.shade700),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Transfer ke nomor VA di atas melalui ATM/m-Banking ${bank.toString().toUpperCase()}',
+                  style: TextStyle(color: Colors.amber.shade900, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEwalletContent(Map<String, dynamic> data) {
+    final instructions = data['payment_instructions'] ?? {};
+    final deeplink = instructions['deeplink'] ?? '';
+    final qrUrl = instructions['qr_url'] ?? data['qr_string'] ?? '';
+    final paymentType = data['payment_type'] ?? widget.paymentType;
+    
+    return Column(
+      children: [
+        // Show QR if available
+        if (qrUrl.toString().isNotEmpty) ...[
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade200, width: 2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Image.network(
+              qrUrl,
+              width: 180,
+              height: 180,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Scan QR dengan aplikasi ${paymentType == 'gopay' ? 'Gojek' : 'Shopee'}',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Text('atau', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 16),
+        ],
+        
+        // Deeplink button
+        if (deeplink.toString().isNotEmpty)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final uri = Uri.parse(deeplink);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Tidak dapat membuka aplikasi ${paymentType == 'gopay' ? 'Gojek' : 'Shopee'}')),
+                    );
+                  }
+                }
+              },
+              icon: Icon(paymentType == 'gopay' ? Icons.account_balance_wallet : Icons.shopping_bag),
+              label: Text('Buka ${paymentType == 'gopay' ? 'Gojek' : 'Shopee'}'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: paymentType == 'gopay' ? Colors.green : Colors.orange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Order ID: ${data['order_id']}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontFamily: 'Courier',
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorContent(Object err) {
+    final errorMessage = err.toString();
+    final isAlreadyPaid = errorMessage.contains('400') || errorMessage.toLowerCase().contains('lunas');
+
+    if (isAlreadyPaid) {
+      return Column(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green, size: 80),
+          const SizedBox(height: 16),
+          Text(
+            'Tagihan Lunas',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryGreen,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text('Tagihan ini sudah dibayar.', textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('KEMBALI'),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+        const SizedBox(height: 16),
+        const Text('Terjadi Kesalahan', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(errorMessage.replaceAll('Exception:', ''), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            ref.read(transactionProvider.notifier).createTransaction(widget.billId, widget.paymentType);
+          },
+          child: const Text('Coba Lagi'),
+        ),
+      ],
     );
   }
 }

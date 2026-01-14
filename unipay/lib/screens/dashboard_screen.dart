@@ -13,7 +13,7 @@ import '../providers/bill_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/news_service.dart';
 import '../widgets/ktm_card.dart';
-import 'payment_screen.dart';
+import 'payment_method_screen.dart';
 
 import 'package:flutter/services.dart';
 
@@ -423,7 +423,7 @@ class DashboardScreen extends ConsumerWidget {
                      onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => PaymentScreen(
+                            builder: (context) => PaymentMethodScreen(
                               billId: bill['id'],
                               billTitle: bill['title'],
                               amount: double.parse(bill['amount']),

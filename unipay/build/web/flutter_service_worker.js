@@ -10,7 +10,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "9be2f5400c15afcb47b7ad19b860eccb
 "assets/assets/images/logo-putih.png": "e0552021ae7c64f15c1d2ac7fc0c5f9f",
 "assets/assets/images/__logo-app.png": "2c7ea46c53a29c9fbad672319cbe3683",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/fonts/MaterialIcons-Regular.otf": "adb10d033f4b9c6bc1686d2282a9bf3e",
+"assets/fonts/MaterialIcons-Regular.otf": "eebb64c1654e3c9e09a08debdd45d307",
 "assets/NOTICES": "c5163b377a4bf17873a8b9d2d07c7b2c",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "391ff5f9f24097f4f6e4406690a06243",
 "assets/packages/wakelock_plus/assets/no_sleep.js": "7748a45cd593f33280669b29c2c8919a",
@@ -28,9 +28,9 @@ const RESOURCES = {"assets/AssetManifest.bin": "9be2f5400c15afcb47b7ad19b860eccb
 "icons/Icon-512.png": "7b15b49c801625cc25abe30badb19d2e",
 "icons/Icon-maskable-192.png": "cbe299c0fc0ae4a061ad39bb144e5ad6",
 "icons/Icon-maskable-512.png": "7b15b49c801625cc25abe30badb19d2e",
-"index.html": "1a2f403c6ebd72c56a2d68e1b067b9f6",
-"/": "1a2f403c6ebd72c56a2d68e1b067b9f6",
-"main.dart.js": "97d5b586ab7cff94c500f806e4582041",
+"index.html": "e0dd20066addc718481a10b713afacf8",
+"/": "e0dd20066addc718481a10b713afacf8",
+"main.dart.js": "1d34d5f305dbd59f1078b734bedd28bd",
 "manifest.json": "bceb6f5301e95eb7fd2d9756e9d20043",
 "version.json": "9338ec4fa39a3db63d9cd16659f48a07"};
 // The application shell files that are downloaded before a service worker can

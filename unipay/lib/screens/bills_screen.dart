@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:unipay/core/theme.dart';
 import 'package:unipay/providers/bill_provider.dart';
-import 'package:unipay/screens/payment_screen.dart';
+import 'package:unipay/screens/payment_method_screen.dart';
 
 class BillsScreen extends ConsumerWidget {
   const BillsScreen({super.key});
@@ -192,7 +192,7 @@ class BillsScreen extends ConsumerWidget {
                      onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => PaymentScreen(
+                            builder: (context) => PaymentMethodScreen(
                               billId: bill['id'],
                               billTitle: bill['title'],
                               amount: double.parse(bill['amount']),
