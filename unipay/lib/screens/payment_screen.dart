@@ -359,29 +359,40 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
         ),
         const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              vaNumber,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-                fontFamily: 'Courier',
-              ),
+        // VA Number with wrap support for long numbers
+        SelectableText(
+          vaNumber,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            fontFamily: 'Courier',
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        // Copy button - more prominent and easier to tap
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: vaNumber));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Nomor VA berhasil disalin!'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            icon: const Icon(Icons.copy),
+            label: const Text('Salin Nomor VA'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.blue.shade700,
+              side: BorderSide(color: Colors.blue.shade300),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.copy, size: 20),
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: vaNumber));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nomor VA disalin!')),
-                );
-              },
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 8),
         Container(
