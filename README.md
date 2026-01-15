@@ -2,7 +2,7 @@
 
 **Sistem Pembayaran Uang Kuliah (UKT) Digital Berbasis Mobile & Web**
 
-UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah transaksi pembayaran uang kuliah di lingkungan kampus. Sistem ini mengintegrasikan aplikasi mobile untuk mahasiswa dan panel admin web untuk staf keuangan, didukung oleh gateway pembayaran **Midtrans** untuk transaksi non-tunai (QRIS).
+UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah transaksi pembayaran uang kuliah di lingkungan kampus. Sistem ini mengintegrasikan aplikasi mobile untuk mahasiswa dan panel admin web untuk staf keuangan, didukung oleh gateway pembayaran **Midtrans** untuk transaksi non-tunai (QRIS) dan notifikasi WhatsApp otomatis.
 
 ---
 
@@ -10,16 +10,18 @@ UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah trans
 
 ### 📱 Aplikasi Mahasiswa (Android/iOS)
 *   **Cek Tagihan Real-time:** Notifikasi tagihan SPP/UKT yang belum dibayar.
-*   **Pembayaran QRIS:** Generate QR Code dinamis untuk pembayaran via GoPay, OVO, Dana, dll.
+*   **Pembayaran QRIS:** Generate QR Code dinamis untuk pembayaran via GoPay, OVO, Dana, ShopeePay (dengan Deep Link).
 *   **Riwayat Transaksi:** Bukti pembayaran tersimpan otomatis dan bisa diakses kapan saja.
+*   **Direct Download Receipt:** Unduh bukti bayar PDF langsung ke penyimpanan HP (HTML Table Layout Professional).
 *   **Smart Dashboard:** Tampilan bersih yang memprioritaskan tagihan aktif.
 
 ### 🏢 Admin Panel (Web)
 *   **Dashboard Statistik:** Grafik total pemasukan dan jumlah tagihan pending.
-*   **Pembayaran Mahasiswa:** Manajemen tagihan yang berpusat pada mahasiswa. Lihat total tagihan per mahasiswa dengan mudah.
+*   **Pembayaran Mahasiswa:** Manajemen tagihan yang berpusat pada mahasiswa.
+*   **WhatsApp Blast Reminder 🚀:** Kirim pengingat tagihan otomatis ke mahasiswa via WhatsApp (Fonnte) dengan fitur **Bulk Action**, **Deep Link**, dan **Anti-Spam Delay**.
+*   **Reconciliation Reports 📊:** Export data transaksi ke Excel untuk keperluan rekonsiliasi dan audit keuangan.
 *   **Data Prodi:** Manajemen Program Studi untuk standarisasi data (Dropdown selection).
 *   **Tagihan Massal:** Buat tagihan untuk satu angkatan atau satu prodi sekaligus dengan mudah.
-*   **Monitoring Transaksi:** Cek status pembayaran secara real-time.
 *   **Student Management:** Kelola data akun mahasiswa dengan foto profil dan status aktif.
 
 ---
@@ -28,11 +30,13 @@ UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah trans
 
 | Layer | Teknologi |
 |-------|-----------|
-| **Mobile App** | Flutter 3.x, Riverpod, Dio |
-| **Backend** | Laravel 11, FilamentPHP 3 |
+| **Mobile App** | Flutter 3.x, Riverpod, Dio, OpenFilex |
+| **Backend** | Laravel 11, FilamentPHP 3.x |
 | **Database** | SQLite (dev) / MySQL (prod) |
 | **Auth** | Laravel Sanctum |
-| **Payment** | Midtrans (QRIS) |
+| **Payment** | Midtrans (QRIS, E-Wallet Deep Link) |
+| **Notification** | Fonnte (WhatsApp Gateway) |
+| **Export** | Filament Export (OpenSpout) |
 
 ---
 
@@ -82,36 +86,18 @@ composer install
 ```bash
 # Salin file environment
 copy .env.example .env
-
-# Atau di Mac/Linux:
-# cp .env.example .env
+# Atau di Mac/Linux: cp .env.example .env
 ```
 
-#### 2.4 Generate Application Key
+#### 2.4 Generator Key & Config
 ```bash
 php artisan key:generate
 ```
 
-#### 2.5 Setup Database (Pilih Salah Satu)
+#### 2.5 Setup Database & Konfigurasi Penting
+Edit file `.env` dan pastikan konfigurasi berikut terisi:
 
-**Opsi A: SQLite (Lebih Mudah - Recommended untuk Development)**
-```bash
-# Buat file database SQLite
-# Windows:
-type nul > database\database.sqlite
-
-# Mac/Linux:
-# touch database/database.sqlite
-```
-
-Pastikan file `.env` sudah berisi:
-```env
-DB_CONNECTION=sqlite
-```
-
-**Opsi B: MySQL**
-1. Buat database baru di MySQL (nama: `unipay_db`)
-2. Update file `.env`:
+**Database:**
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -121,33 +107,37 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+**Midtrans (Payment):**
+```env
+MIDTRANS_SERVER_KEY=SB-Mid-server-xxxx
+MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxx
+MIDTRANS_IS_PRODUCTION=false
+```
+
+**Fonnte (WhatsApp) & Queue:**
+```env
+FONNTE_TOKEN=your-token-here  # Daftar di fonnte.com
+QUEUE_CONNECTION=sync         # Agar export & blast berjalan langsung di local
+```
+
 #### 2.6 Jalankan Migrasi Database
 ```bash
 php artisan migrate
 ```
 
-#### 2.7 (Opsional) Seed Data Dummy
+#### 2.7 Seed Data Dummy & Admin
 ```bash
 php artisan db:seed
-```
-
-#### 2.8 Buat Akun Admin untuk Filament
-```bash
 php artisan db:seed --class=ProductionAdminSeeder
 ```
 **Login Admin Panel:**
 - Email: `admin@gmail.com`
 - Password: `password`
 
-#### 2.9 Jalankan Server Backend
+#### 2.8 Jalankan Server Backend
 ```bash
 php artisan serve
 ```
-
-**✅ Backend berjalan di:** `http://127.0.0.1:8000`  
-**✅ Admin Panel:** `http://127.0.0.1:8000/admin`
-
-> ⚠️ **PENTING:** Jangan tutup terminal ini! Biarkan server berjalan.
 
 ---
 
@@ -165,183 +155,40 @@ cd unipay
 flutter pub get
 ```
 
-#### 3.3 Jalankan Emulator atau Hubungkan Device
-
-**Opsi A: Android Emulator**
-1. Buka Android Studio
-2. Pergi ke **Tools > Device Manager**
-3. Klik **Play** pada emulator yang tersedia
-
-**Opsi B: Physical Device (HP Android)**
-1. Aktifkan **Developer Options** di HP
-2. Aktifkan **USB Debugging**
-3. Hubungkan HP via USB
-4. Pilih **Transfer Files** atau **File Transfer**
-
-#### 3.4 Cek Device yang Terhubung
-```bash
-flutter devices
-```
-Pastikan ada minimal 1 device yang terdeteksi.
-
-#### 3.5 Jalankan Aplikasi
-```bash
-flutter run -d chrome
-```
-
-**✅ Aplikasi akan terbuild dan terinstall otomatis di device/emulator.**
-
----
-
-## 🔧 Konfigurasi Penting
-
-### Konfigurasi API URL (Untuk Physical Device)
-
-Jika menggunakan **HP fisik**, kamu perlu update `baseUrl` di file:
-```
-unipay/lib/core/constants.dart
-```
-
-Ubah ke alamat IP komputer kamu:
+#### 3.3 Konfigurasi URL API
+Edit file `unipay/lib/core/constants.dart`:
 ```dart
-String get baseUrl {
-  try {
-    if (Platform.isAndroid) {
-      return 'http://192.168.x.x:8000/api';  // Ganti dengan IP komputer
-    }
-    return 'http://127.0.0.1:8000/api';
-  } catch (e) {
-    return 'http://127.0.0.1:8000/api';
-  }
-}
+// Sesuaikan dengan IP komputermu jika pakai HP Fisik
+// Contoh: http://192.168.1.10:8000/api
 ```
 
-> 💡 **Cara cek IP komputer:**
-> - Windows: Buka CMD, ketik `ipconfig`, lihat **IPv4 Address**
-> - Mac/Linux: `ifconfig` atau `ip addr`
-
-### Konfigurasi Midtrans (Payment Gateway)
-
-Edit file `backend/.env` dan masukkan Midtrans keys:
-```env
-MIDTRANS_SERVER_KEY=SB-Mid-server-xxxxx
-MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxx
-MIDTRANS_IS_PRODUCTION=false
-```
-
-> 📝 Dapatkan keys di: [Midtrans Dashboard](https://dashboard.sandbox.midtrans.com/) (Sandbox untuk testing)
-
----
-
-## 📸 Cara Testing Pembayaran (Sandbox)
-
-1. Buka Aplikasi **UniPay**, pilih tagihan, klik **Bayar**.
-2. Akan muncul **QR Code**.
-3. **Cara 1 (Simulator Mobile):** Scan QR tersebut pakai aplikasi Simulator (Android).
-4. **Cara 2 (Paling Ampuh - Mock Notification):**
-    *   Lihat **Order ID** di layar aplikasi (misal: `UKT-123-xxxxx`).
-    *   Buka [Midtrans Mock Notification](https://simulator.sandbox.midtrans.com/index).
-    *   Pilih **Mock Notification**, masukkan **Order ID**, pilih Status **Settlement**, klik **Apply**.
-5. Kembali ke Aplikasi, status akan berubah menjadi **LUNAS** seketika (via Polling).
-6. **Unduh Bukti Bayar:** Pergi ke menu Riwayat, pilih tagihan Lunas, klik "Unduh Bukti Bayar" untuk dapat PDF.
-
----
-
-## ❓ Troubleshooting (Masalah Umum)
-
-### ❌ Error: "Connection refused" atau "Failed to connect"
-**Solusi:**
-- Pastikan `php artisan serve` masih berjalan di terminal
-- Untuk emulator Android, gunakan IP `10.0.2.2` bukan `127.0.0.1`
-- Untuk physical device, gunakan IP komputer (bukan localhost)
-
-### ❌ Error: "SQLSTATE - no such table"
-**Solusi:**
+#### 3.4 Jalankan Aplikasi
 ```bash
-cd backend
-php artisan migrate:fresh
-```
-
-### ❌ Error: "flutter command not found"
-**Solusi:**
-- Pastikan Flutter sudah di-add ke PATH
-- Restart terminal setelah instalasi Flutter
-- Jalankan `flutter doctor` untuk cek instalasi
-
-### ❌ Error: "No devices found"
-**Solusi:**
-- Pastikan emulator sudah running atau HP terhubung
-- Untuk HP: aktifkan USB Debugging
-- Jalankan `flutter devices` untuk cek device
-
-### ❌ Admin Panel kosong / error
-**Solusi:**
-```bash
-cd backend
-php artisan filament:upgrade
-php artisan optimize:clear
+flutter run
 ```
 
 ---
 
-## 📁 Struktur Project
+## 📸 Fitur Baru: WhatsApp Blast & Export
 
-```
-unipay-flutter/
-├── backend/              # Backend Laravel
-│   ├── app/             # Kode aplikasi (Controllers, Models, dll)
-│   ├── database/        # Migrations & Seeders
-│   ├── routes/          # API Routes
-│   └── .env             # Environment config
-│
-└── unipay/              # Mobile App Flutter
-    ├── lib/
-    │   ├── core/        # Config, Theme, API Client
-    │   ├── models/      # Data Models
-    │   ├── providers/   # State Management (Riverpod)
-    │   └── screens/     # UI Screens
-    └── pubspec.yaml     # Dependencies
-```
+### 1. Kirim Tagihan via WhatsApp (Admin)
+1. Buka Admin Panel -> Menu **Pembayaran**.
+2. Centang nama mahasiswa yang belum lunas.
+3. Klik **Bulk Actions** (pojok kiri atas tabel) -> **Kirim WA Tagihan**.
+4. Pesan otomatis terkirim dengan link `unipay://bills` (Deep Link).
 
----
-
-## 📝 Akun Demo
-
-### Admin Panel (Web)
-- **Email:** Buat sendiri via `php artisan make:filament-user`
-- **URL:** `http://127.0.0.1:8000/admin`
-
-### Mahasiswa (Mobile App)
-Setelah menjalankan `php artisan db:seed`, gunakan akun berikut untuk login:
-- **Email:** `test@example.com`
-- **Password:** `password`
-
-> 💡 **Catatan:** Jika password tidak berhasil, reset via Tinker:
-> ```bash
-> php artisan tinker
-> ```
-> ```php
-> $user = \App\Models\User::where('email', 'test@example.com')->first();
-> $user->password = bcrypt('password');
-> $user->save();
-> exit
-> ```
+### 2. Export Laporan Excel
+1. Buka Admin Panel -> Menu **Transactions**.
+2. Klik tombol **Export Laporan** di header.
+3. File Excel akan otomatis terunduh (pastikan `QUEUE_CONNECTION=sync` di `.env`).
 
 ---
 
 ## 👥 Tim Pengembang
 
 **Tugas Akhir Mata Kuliah Pemrograman Berbasis Platform**
-1. Ahmad Adnan 
+1. Ahmad Adnan
 2. Aziz Wahyudin
 3. Karan Kemal
 4. Intan Eka
 ---
-
-## 📞 Butuh Bantuan?
-
-Jika masih ada kendala:
-1. Pastikan semua prasyarat sudah terinstall dengan benar
-2. Jalankan `flutter doctor` dan selesaikan semua issue
-3. Cek error message di terminal untuk debugging
-4. Hubungi tim pengembang
