@@ -14,6 +14,9 @@ class ListTransactions extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\ExportAction::make()
+                ->exporter(\App\Filament\Exports\TransactionExporter::class)
+                ->label('Export Laporan'),
         ];
     }
 }
