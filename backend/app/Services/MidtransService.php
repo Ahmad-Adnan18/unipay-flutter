@@ -82,6 +82,21 @@ class MidtransService
             ],
         ];
 
+        // ShopeePay requires callback_url (mandatory)
+        if ($type === 'shopeepay') {
+            $params['shopeepay'] = [
+                'callback_url' => 'unipay://payment-callback', // Redirect back to app
+            ];
+        }
+
+        // GoPay optional optimization
+        if ($type === 'gopay') {
+            $params['gopay'] = [
+                'enable_callback' => true,
+                'callback_url' => 'unipay://payment-callback',
+            ];
+        }
+
         try {
             return CoreApi::charge($params);
         } catch (\Exception $e) {

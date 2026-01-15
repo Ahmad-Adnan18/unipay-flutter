@@ -1,65 +1,228 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Official Receipt</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Receipt #{{ $transaction->order_id }}</title>
     <style>
-        body { font-family: sans-serif; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .logo { font-size: 24px; font-weight: bold; color: #2ecc71; }
-        .title { font-size: 18px; margin-top: 5px; font-weight: bold; }
-        .content { margin: 20px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 10px; } /* Flex doesn't work well in DomPDF sometimes, use table */
-        table { width: 100%; margin-bottom: 20px; }
-        td { padding: 5px; }
-        .label { font-weight: bold; color: #666; }
-        .amount { font-size: 20px; font-weight: bold; color: #2ecc71; }
-        .footer { text-align: center; margin-top: 50px; font-size: 0.8em; color: #999; }
-        .status-paid { color: white; background-color: #2ecc71; padding: 5px 10px; border-radius: 5px; font-weight: bold; display: inline-block; }
+        body {
+            font-family: sans-serif;
+            color: #333;
+            font-size: 14px;
+        }
+        .container {
+            width: 100%;
+            padding: 20px;
+        }
+        /* Tables are king in PDF generation */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            padding: 8px;
+            vertical-align: top;
+        }
+        
+        /* Header Section */
+        .header-table td {
+            padding-bottom: 20px;
+            border-bottom: 2px solid #024920;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #024920;
+            text-transform: uppercase;
+        }
+        .company-addr {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .receipt-title {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* Info Section */
+        .info-table {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* Items Section */
+        .items-header {
+            background-color: #024920;
+            color: white;
+            font-weight: bold;
+        }
+        .items-table th {
+            padding: 10px;
+            text-align: left;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        /* Total Section */
+        .total-table {
+            margin-top: 20px;
+            width: 40%;
+            float: right; /* DomPDF supports float right for tables */
+        }
+        .total-table td {
+            padding: 5px;
+        }
+        .grand-total {
+            color: #024920;
+            font-size: 18px;
+            font-weight: bold;
+            border-top: 2px solid #024920;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 100px; /* Push footer down */
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            width: 100%;
+            clear: both;
+        }
+        .paid-stamp {
+            color: #024920;
+            border: 3px solid #024920;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 24px;
+            transform: rotate(-10deg);
+            display: inline-block;
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">UniPay Campus</div>
-        <div class="title">OFFICIAL RECEIPT</div>
+    <!-- WATERMARK (Positioned absolutely behind content) -->
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); z-index: -1000; opacity: 0.15; width: 100%; text-align: center;">
+         <span style="font-size: 100px; font-weight: 900; color: #024920; border: 8px solid #024920; padding: 10px 40px; border-radius: 15px; letter-spacing: 10px;">LUNAS</span>
     </div>
 
-    <div class="content">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <span class="status-paid">LUNAS / PAID</span>
-        </div>
-
-        <table>
+    <div class="container">
+        <!-- HEADER -->
+        <table class="header-table">
             <tr>
-                <td class="label">Receipt No:</td>
-                <td>#{{ $transaction->order_id }}</td>
-            </tr>
-            <tr>
-                <td class="label">Date:</td>
-                <td>{{ $transaction->updated_at->format('d F Y H:i') }}</td>
-            </tr>
-            <tr>
-                <td class="label">Student:</td>
-                <td>{{ $transaction->bill->user->name }} ({{ $transaction->bill->user->nim ?? '-' }})</td>
-            </tr>
-            <tr>
-                <td class="label">Payment For:</td>
-                <td>{{ $transaction->bill->title }}</td>
-            </tr>
-            <tr>
-                <td class="label">Amount:</td>
-                <td class="amount">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+                <td width="60%">
+                    <div class="logo">UniPay Campus</div>
+                    <div class="company-addr">
+                        Official Payment Receipt<br>
+                        Generated by System
+                    </div>
+                </td>
+                <td width="40%" style="text-align: right;">
+                    <div class="receipt-title">RECEIPT</div>
+                    <div style="margin-top: 5px; color: #666;">#{{ $transaction->order_id }}</div>
+                    <div style="font-size: 12px; color: #888;">{{ $transaction->updated_at->format('d F Y, H:i') }}</div>
+                </td>
             </tr>
         </table>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <p>This receipt is generated automatically and is valid without a signature.</p>
-            {{-- <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(100)->generate($transaction->order_id)) }}" alt="QR Validation" /> --}}
-            {!! QrCode::format('svg')->size(100)->generate($transaction->order_id) !!}
-        </div>
-    </div>
+        <!-- BILL TO & INFO -->
+        <table class="info-table">
+            <tr>
+                <td width="55%">
+                    <div class="info-label">Billed To:</div>
+                    <div class="info-value" style="font-size: 16px; margin-top: 5px;">{{ $transaction->bill->user->name }}</div>
+                    <div style="color: #555;">
+                        NIM: {{ $transaction->bill->user->nim ?? '-' }}<br>
+                        {{ $transaction->bill->user->major ?? 'Student' }}
+                    </div>
+                </td>
+                <td width="45%">
+                    <table style="width: 100%">
+                        <tr>
+                            <td class="info-label">Payment Method:</td>
+                            <td class="text-right" style="text-transform: uppercase; font-weight: bold;">
+                                {{ str_replace('_', ' ', $transaction->payment_type) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">Status:</td>
+                            <td class="text-right" style="color: #024920; font-weight: bold;">PAID / LUNAS</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-    <div class="footer">
-        &copy; {{ date('Y') }} UniPay System. All rights reserved.
+        <!-- LINE ITEMS -->
+        <table class="items-table">
+            <thead>
+                <tr class="items-header">
+                    <th width="70%">Description</th>
+                    <th width="30%" class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>{{ $transaction->bill->title }}</strong>
+                        <div style="font-size: 11px; color: #888; margin-top: 4px;">Ref: {{ $transaction->id }}</div>
+                    </td>
+                    <td class="text-right">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <table class="total-table">
+            <tr>
+                <td class="text-right" style="color: #666;">Subtotal:</td>
+                <td class="text-right">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td class="text-right" style="color: #666;">Fees:</td>
+                <td class="text-right">Rp 0</td>
+            </tr>
+            <tr>
+                <td class="text-right grand-total" style="padding-top: 10px;">TOTAL:</td>
+                <td class="text-right grand-total" style="padding-top: 10px;">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+            </tr>
+        </table>
+
+        <div style="clear: both;"></div>
+
+        <!-- FOOTER & QR -->
+        <div class="footer">
+            <table width="100%">
+                <tr>
+                    <td width="70%" style="vertical-align: middle;">
+                        <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                            This is a computer-generated document. No signature is required.<br>
+                            Valid proof of payment for UniPay services.
+                        </div>
+                    </td>
+                    <td width="30%" class="text-right">
+                         <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(70)->margin(0)->generate($transaction->order_id)) }}" style="width: 70px;" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
     </div>
 </body>
 </html>
