@@ -76,7 +76,42 @@ class PembayaranResource extends Resource
                     ->label('Detail Tagihan'),
             ])
             ->bulkActions([
-                //
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('send_whatsapp')
+                        ->label('Kirim WA Tagihan')
+                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $service = new \App\Services\FonnteService();
+                            $count = 0;
+                            
+                            foreach ($records as $user) {
+                                // Calculate total unpaid bills
+                                $unpaidBills = $user->bills()->where('status', 'UNPAID')->get();
+                                $totalAmount = $unpaidBills->sum('amount');
+                                $totalCount = $unpaidBills->count();
+
+                                if ($totalCount > 0 && $user->phone) {
+                                    $formattedAmount = number_format($totalAmount, 0, ',', '.');
+                                    
+                                    $message = "Halo *{$user->name}*,\n\nKami mengingatkan bahwa Anda memiliki *{$totalCount} tagihan* yang belum lunas dengan total *Rp {$formattedAmount}*.\n\nMohon segera lakukan pembayaran melalui aplikasi Unipay.\nKlik link ini untuk buka aplikasi:\n👉 unipay://bills\n\nTerima kasih.";
+                                    
+                                    if ($service->sendReminder($user->phone, $message)) {
+                                        $count++;
+                                        // Anti-ban protection: Delay 2 seconds per message
+                                        sleep(2);
+                                    }
+                                }
+                            }
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title("Pesan dikirim ke {$count} mahasiswa")
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                ]),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('create_bulk')
