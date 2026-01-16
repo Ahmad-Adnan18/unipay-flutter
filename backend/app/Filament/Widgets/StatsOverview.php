@@ -7,6 +7,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StatsOverview extends BaseWidget
 {
+    protected int | string | array $columnSpan = 'full';
     protected function getStats(): array
     {
         $totalRevenue = \App\Models\Bill::where('status', 'PAID')->sum('amount');
