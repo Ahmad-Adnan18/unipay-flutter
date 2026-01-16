@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->profile()
             ->brandLogo(fn () => new \Illuminate\Support\HtmlString(
                 '<div class="flex items-center gap-2">
                     <img src="' . asset('assets/logo-app.png') . '" class="h-8" />

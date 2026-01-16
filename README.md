@@ -16,13 +16,14 @@ UniPay adalah platform pembayaran digital yang dirancang untuk mempermudah trans
 *   **Smart Dashboard:** Tampilan bersih yang memprioritaskan tagihan aktif.
 
 ### 🏢 Admin Panel (Web)
-*   **Dashboard Statistik:** Grafik total pemasukan dan jumlah tagihan pending.
+*   **Executive Dashboard 📊:** Tampilan visual modern dengan Grafik Pemasukan (Revenue Chart), Statistik Metode Pembayaran (Pie Chart), dan Transaksi Terakhir.
 *   **Pembayaran Mahasiswa:** Manajemen tagihan yang berpusat pada mahasiswa.
-*   **WhatsApp Blast Reminder 🚀:** Kirim pengingat tagihan otomatis ke mahasiswa via WhatsApp (Fonnte) dengan fitur **Bulk Action**, **Deep Link**, dan **Anti-Spam Delay**.
-*   **Reconciliation Reports 📊:** Export data transaksi ke Excel untuk keperluan rekonsiliasi dan audit keuangan.
-*   **Data Prodi:** Manajemen Program Studi untuk standarisasi data (Dropdown selection).
-*   **Tagihan Massal:** Buat tagihan untuk satu angkatan atau satu prodi sekaligus dengan mudah.
-*   **Student Management:** Kelola data akun mahasiswa dengan foto profil dan status aktif.
+*   **WhatsApp Blast Reminder 🚀:** Kirim pengingat tagihan otomatis ke mahasiswa via WhatsApp (Fonnte).
+*   **Reconciliation Reports 📑:** Export data transaksi ke Excel untuk audit keuangan.
+*   **System Backups 🛡️:** Backup otomatis database & file proyek setiap malam, atau backup manual via GUI.
+*   **User Management:** Manajemen mahasiswa & staf, termasuk fitur Ganti Password untuk keamanan.
+*   **Data Prodi:** Manajemen Program Studi untuk standarisasi data.
+*   **Tagihan Massal:** Buat tagihan satu angkatan sekaligus.
 
 ---
 
@@ -134,7 +135,14 @@ php artisan db:seed --class=ProductionAdminSeeder
 - Email: `admin@gmail.com`
 - Password: `password`
 
-#### 2.8 Jalankan Server Backend
+#### 2.8 Setup Backup Otomatis (Production Only)
+    Agar fitur backup berjalan otomatis setiap jam 00:00, tambahkan Cron Job berikut di panel hosting (cPanel/AApanel):
+    ```bash
+    * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+    ```
+    *Ganti `/path-to-your-project` dengan lokasi folder project Anda di server.*
+
+#### 2.9 Jalankan Server Backend
 ```bash
 php artisan serve
 ```
@@ -186,9 +194,5 @@ flutter run
 
 ## 👥 Tim Pengembang
 
-**Tugas Akhir Mata Kuliah Pemrograman Berbasis Platform**
-1. Ahmad Adnan
-2. Aziz Wahyudin
-3. Karan Kemal
-4. Intan Eka
+**PRODI INFORMATIKA ANGKATAN PERTAMA**
 ---

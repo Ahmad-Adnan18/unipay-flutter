@@ -36,4 +36,27 @@ class AuthController extends Controller
             'user' => $user
         ]);
     }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = auth()->user();
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'Password lama tidak sesuai.'
+            ], 422);
+        }
+
+        $user->update([
+            'password' => bcrypt($request->new_password)
+        ]);
+
+        return response()->json([
+            'message' => 'Password berhasil diubah.'
+        ]);
+    }
 }
