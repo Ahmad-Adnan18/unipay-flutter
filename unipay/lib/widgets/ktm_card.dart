@@ -215,6 +215,16 @@ class _KtmCardState extends State<KtmCard> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildBack() {
+    // Create human-readable data for the QR code
+    // Format: Key: Value (New lines)
+    final qrData = '''
+NIM: ${widget.nim}
+Nama: ${widget.name}
+Prodi: ${widget.major}
+Status: Mahasiswa Aktif
+Validasi: ${DateTime.now().year}
+''';
+
     return Container(
       height: 220,
       width: double.infinity,
@@ -234,16 +244,94 @@ class _KtmCardState extends State<KtmCard> with SingleTickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            QrImageView(
-              data: widget.nim.isEmpty ? 'INVALID' : widget.nim,
-              version: QrVersions.auto,
-              size: 150.0,
-              gapless: false,
+            GestureDetector(
+              onTap: () => _showZoomedQr(context, qrData),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: QrImageView(
+                  data: qrData,
+                  version: QrVersions.auto,
+                  size: 130.0,
+                  gapless: false,
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.touch_app, size: 14, color: Colors.grey.shade400),
+                const SizedBox(width: 4),
+                Text(
+                  'Ketuk QR untuk Info Lengkap',
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text(
-              'Scan untuk Masuk Perpustakaan',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              'Akses Perpustakaan',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showZoomedQr(BuildContext context, String qrData) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Scan QR Code', 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey.shade800)
+                  ),
+                  const SizedBox(height: 20),
+                  QrImageView(
+                    data: qrData,
+                    version: QrVersions.auto,
+                    size: 250.0,
+                    gapless: false,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    widget.name,
+                    semanticsLabel: 'Student Name',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  Text(
+                     widget.nim,
+                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14, letterSpacing: 1),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 40),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.2),
+                padding: const EdgeInsets.all(12)
+              ),
             )
           ],
         ),
