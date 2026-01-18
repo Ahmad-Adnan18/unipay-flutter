@@ -11,9 +11,11 @@ import 'package:unipay/screens/news_detail_screen.dart';
 import 'package:unipay/screens/news_list_screen.dart';
 import '../providers/bill_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 import '../services/news_service.dart';
 import '../widgets/ktm_card.dart';
 import 'payment_method_screen.dart';
+import 'notification_screen.dart';
 
 import 'package:flutter/services.dart';
 
@@ -91,9 +93,36 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     ),
                     const Spacer(),
-                    IconButton(
-                      onPressed: () {}, // TODO: Notifications
-                      icon: const Icon(Icons.notifications_outlined),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final notifState = ref.watch(notificationProvider);
+                        final hasUnread = notifState.unreadCount > 0;
+                        
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationScreen()));
+                              },
+                              icon: const Icon(Icons.notifications_outlined),
+                            ),
+                            if (hasUnread)
+                              Positioned(
+                                right: 10,
+                                top: 10,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
