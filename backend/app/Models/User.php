@@ -31,6 +31,20 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Bill::class)->where('status', 'UNPAID');
     }
 
+    public function scholarships()
+    {
+        return $this->hasMany(Scholarship::class);
+    }
+
+    public function activeScholarship()
+    {
+        return $this->hasOne(Scholarship::class)
+            ->where('is_active', true)
+            ->where('valid_from', '<=', now())
+            ->where('valid_until', '>=', now())
+            ->latest();
+    }
+
     protected $appends = [
         'profile_photo_url',
     ];

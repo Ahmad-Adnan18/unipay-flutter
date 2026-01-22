@@ -28,7 +28,7 @@ class ReceiptController extends Controller
             abort(403);
         }
 
-        $transaction = Transaction::with(['bill.user'])->findOrFail($id);
+        $transaction = Transaction::with(['bill.user', 'bill.scholarship'])->findOrFail($id);
 
         if ($transaction->payment_status !== 'settlement' && $transaction->payment_status !== 'capture') {
             return response()->json(['message' => 'Transaction not paid yet.'], 403);

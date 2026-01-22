@@ -12,6 +12,9 @@ class Bill extends Model
     protected $fillable = [
         'user_id',
         'amount',
+        'original_amount',
+        'scholarship_id',
+        'discount_amount',
         'title',
         'due_date',
         'status',
@@ -32,5 +35,10 @@ class Bill extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function scholarship()
+    {
+        return $this->belongsTo(Scholarship::class);
     }
 }

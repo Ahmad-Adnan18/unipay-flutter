@@ -79,7 +79,37 @@ class BillsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->label('Tambah Tagihan'),
+                    ->label('Tambah Tagihan')
+                    ->mutateFormDataUsing(function (array $data): array {
+                        // Get the owner (user) from the relation manager
+                        $user = $this->getOwnerRecord();
+                        
+                        if ($user) {
+                            // Check for active scholarship
+                            $activeScholarship = $user->activeScholarship;
+                            
+                            if ($activeScholarship) {
+                                $originalAmount = $data['amount'];
+                                $discountAmount = $activeScholarship->calculateDiscount($originalAmount);
+                                $finalAmount = $originalAmount - $discountAmount;
+                                
+                                // Update data with scholarship info
+                                $data['original_amount'] = $originalAmount;
+                                $data['scholarship_id'] = $activeScholarship->id;
+                                $data['discount_amount'] = $discountAmount;
+                                $data['amount'] = $finalAmount;
+                                
+                                // Show notification
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Beasiswa diterapkan!')
+                                    ->body("Potongan {$activeScholarship->formatted_amount} dari {$activeScholarship->name}")
+                                    ->success()
+                                    ->send();
+                            }
+                        }
+                        
+                        return $data;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

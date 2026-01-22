@@ -185,10 +185,26 @@ class BillResource extends Resource
                         }
 
                         foreach ($users as $user) {
+                            // Check for active scholarship
+                            $activeScholarship = $user->activeScholarship;
+                            $originalAmount = $data['amount'];
+                            $finalAmount = $originalAmount;
+                            $discountAmount = 0;
+                            $scholarshipId = null;
+
+                            if ($activeScholarship) {
+                                $scholarshipId = $activeScholarship->id;
+                                $discountAmount = $activeScholarship->calculateDiscount($originalAmount);
+                                $finalAmount = $originalAmount - $discountAmount;
+                            }
+
                             \App\Models\Bill::create([
                                 'user_id' => $user->id,
                                 'title' => $data['title'],
-                                'amount' => $data['amount'],
+                                'original_amount' => $activeScholarship ? $originalAmount : null,
+                                'scholarship_id' => $scholarshipId,
+                                'discount_amount' => $discountAmount,
+                                'amount' => $finalAmount,
                                 'due_date' => $data['due_date'],
                                 'status' => 'UNPAID',
                             ]);

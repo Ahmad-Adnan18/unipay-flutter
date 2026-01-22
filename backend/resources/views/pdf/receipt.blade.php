@@ -190,10 +190,29 @@
 
         <!-- TOTALS -->
         <table class="total-table">
-            <tr>
-                <td class="text-right" style="color: #666;">Subtotal:</td>
-                <td class="text-right">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
-            </tr>
+            @if($transaction->bill->scholarship_id)
+                <!-- Show breakdown when scholarship applied -->
+                <tr>
+                    <td class="text-right" style="color: #666;">Tagihan Asli:</td>
+                    <td class="text-right">Rp {{ number_format($transaction->bill->original_amount, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="text-right" style="color: #666;">
+                        Potongan ({{ $transaction->bill->scholarship->name ?? 'Beasiswa' }}):
+                    </td>
+                    <td class="text-right" style="color: #d32f2f;">-Rp {{ number_format($transaction->bill->discount_amount, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="text-right" style="color: #666;">Subtotal:</td>
+                    <td class="text-right">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+                </tr>
+            @else
+                <!-- No scholarship, show normal subtotal -->
+                <tr>
+                    <td class="text-right" style="color: #666;">Subtotal:</td>
+                    <td class="text-right">Rp {{ number_format($transaction->bill->amount, 0, ',', '.') }}</td>
+                </tr>
+            @endif
             <tr>
                 <td class="text-right" style="color: #666;">Fees:</td>
                 <td class="text-right">Rp 0</td>
