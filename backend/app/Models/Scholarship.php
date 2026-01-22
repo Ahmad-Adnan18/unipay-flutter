@@ -30,9 +30,9 @@ class Scholarship extends Model
     ];
 
     // Relationships
-    public function user()
+    public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 
     public function bills()

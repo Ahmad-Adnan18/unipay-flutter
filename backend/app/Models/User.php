@@ -33,16 +33,17 @@ class User extends Authenticatable implements FilamentUser
 
     public function scholarships()
     {
-        return $this->hasMany(Scholarship::class);
+        return $this->belongsToMany(Scholarship::class)->withTimestamps();
     }
 
     public function activeScholarship()
     {
-        return $this->hasOne(Scholarship::class)
+        return $this->scholarships()
             ->where('is_active', true)
             ->where('valid_from', '<=', now())
             ->where('valid_until', '>=', now())
-            ->latest();
+            ->latest()
+            ->first(); // Return model instance, not relationship
     }
 
     protected $appends = [

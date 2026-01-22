@@ -32,13 +32,14 @@ class ScholarshipResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
+                Forms\Components\Select::make('users')
                     ->label('Mahasiswa')
-                    ->relationship('user', 'name')
+                    ->relationship('users', 'name')
+                    ->multiple()
                     ->searchable()
                     ->preload()
-                    ->required()
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->helperText('Pilih satu atau lebih mahasiswa penerima beasiswa'),
                 
                 Forms\Components\TextInput::make('name')
                     ->label('Nama Beasiswa')
@@ -110,14 +111,12 @@ class ScholarshipResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Mahasiswa')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('users_count')
+                    ->label('Jumlah Penerima')
+                    ->counts('users')
+                    ->badge()
+                    ->color('success')
                     ->sortable(),
-                
-                Tables\Columns\TextColumn::make('user.nim')
-                    ->label('NIM')
-                    ->searchable(),
                 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Beasiswa')
@@ -204,7 +203,7 @@ class ScholarshipResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\UsersRelationManager::class,
         ];
     }
 
