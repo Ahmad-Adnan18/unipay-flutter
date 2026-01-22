@@ -86,7 +86,7 @@ class BillsRelationManager extends RelationManager
                         
                         if ($user) {
                             // Check for active scholarship
-                            $activeScholarship = $user->activeScholarship;
+                            $activeScholarship = $user->getActiveScholarship();
                             
                             if ($activeScholarship) {
                                 $originalAmount = $data['amount'];

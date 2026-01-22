@@ -35,15 +35,33 @@ Kami membangun sistem terintegrasi *End-to-End* yang menjembatani Mahasiswa, Sta
 *Pekerjaan seminggu selesai dalam hitungan menit.*
 *   ✅ **One-Click Blast Reminder:** Tagih 1.000+ mahasiswa penunggak via WhatsApp resmi sekolah hanya dengan 1 tombol. Hemat pulsa telepon jutaan rupiah.
 *   ✅ **Auto-Reconciliation:** Sistem otomatis mengubah status "LUNAS" begitu dana masuk. Validasi manual nol detik.
+*   ✅ **Manajemen Beasiswa & Potongan:** Kelola beasiswa (prestasi, yatim, ekonomi, KIP) dengan sistem otomatis. Satu beasiswa bisa untuk banyak mahasiswa sekaligus. Potongan langsung teraplikasi saat generate tagihan.
 *   ✅ **System Backup & Security:** Data mahasiswa aman dengan enkripsi standar perbankan dan backup otomatis di Cloud.
 
 ### C. Untuk Mahasiswa (Mobile App) - *Seamless Experience*
 *Bayar SPP semudah belanja online.*
 *   ✅ **Multi-Payment Gateway:** Support QRIS, ShopeePay, GoPay, Virtual Account, dan Credit Card melalui integrasi Midtrans.
-*   ✅ **Green Campus:** Kwitansi digital (PDF) langsung masuk HP. Zero paper waste.
+*   ✅ **Green Campus:** Kwitansi digital (PDF) langsung masuk HP. Zero paper waste. Kwitansi menampilkan breakdown potongan beasiswa jika ada.
 *   ✅ **Payment History:** Bukti bayar tersimpan abadi di cloud, tidak akan hilang/luntur.
 *   ✅ **Digital KTM dengan QR Code:** Kartu Tanda Mahasiswa digital yang dapat discan untuk akses perpustakaan/gedung.
 *   ✅ **Smart Notification:** Update tagihan, berita kampus, dan pengingat pembayaran real-time.
+
+### D. Fitur Advanced: Sistem Beasiswa & Potongan Otomatis ⭐
+*Fitur unggulan yang membedakan UniPay dari sistem pembayaran biasa.*
+
+**Keunggulan:**
+*   📊 **Manajemen Terpusat:** Kelola semua jenis beasiswa (Prestasi Akademik, Yatim Piatu, Tidak Mampu, KIP, Hafidz, Atlet) dari satu dashboard.
+*   👥 **Assign ke Banyak Mahasiswa:** Satu program beasiswa (misal "Beasiswa Yatim 2024") bisa langsung di-assign ke puluhan atau ratusan mahasiswa sekaligus.
+*   💰 **Fleksibilitas Potongan:** Pilih tipe diskon berdasarkan Persentase (50%) atau Nominal (Rp 1.000.000).
+*   ⏰ **Validity Period:** Atur masa berlaku beasiswa (valid_from - valid_until) untuk kontrol yang lebih baik.
+*   🎯 **Auto-Apply:** Potongan otomatis teraplikasi saat admin membuat tagihan. Tidak perlu kalkulasi manual.
+*   📄 **Transparent Receipt:** Kwitansi PDF menampilkan breakdown lengkap:
+    - Tagihan Asli: Rp 2.000.000
+    - Potongan (Beasiswa Prestasi 2024): -Rp 1.000.000
+    - Total Bayar: Rp 1.000.000
+
+**Use Case:**
+> Admin ingin memberikan beasiswa 50% untuk 20 mahasiswa berprestasi. Cukup buat 1 program "Beasiswa Prestasi Semester Genap 2024", pilih 20 mahasiswa tersebut, set potongan 50%. Ketika membuat tagihan SPP, sistem otomatis mengurangi 50% untuk semua penerima beasiswa. Mahasiswa melihat potongan di app, dan kwitansi digital menampilkan breakdown lengkap.
 
 ---
 

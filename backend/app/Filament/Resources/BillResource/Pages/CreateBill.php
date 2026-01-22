@@ -18,7 +18,7 @@ class CreateBill extends CreateRecord
         
         if ($user) {
             // Check for active scholarship
-            $activeScholarship = $user->activeScholarship;
+            $activeScholarship = $user->getActiveScholarship();
             
             if ($activeScholarship) {
                 $originalAmount = $data['amount'];

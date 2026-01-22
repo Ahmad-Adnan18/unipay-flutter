@@ -186,7 +186,7 @@ class BillResource extends Resource
 
                         foreach ($users as $user) {
                             // Check for active scholarship
-                            $activeScholarship = $user->activeScholarship;
+                            $activeScholarship = $user->getActiveScholarship();
                             $originalAmount = $data['amount'];
                             $finalAmount = $originalAmount;
                             $discountAmount = 0;
