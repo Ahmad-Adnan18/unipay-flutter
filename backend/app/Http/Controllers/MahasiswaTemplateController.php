@@ -5,27 +5,68 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use OpenSpout\Writer\XLSX\Writer;
 use OpenSpout\Common\Entity\Row;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MahasiswaTemplateController extends Controller
 {
     public function download()
     {
-        return new StreamedResponse(function () {
+        // Create temp file
+        $tempFile = tempnam(sys_get_temp_dir(), 'template_mahasiswa_');
+        
+        try {
             $writer = new Writer();
-            $writer->openToBrowser('template_mahasiswa.xlsx');
+            $writer->openToFile($tempFile);
 
             // Header row
-            $writer->addRow(Row::fromValues([
-                'name', 'email', 'nim', 'major', 'semester', 'phone', 'address', 'password'
-            ]));
+            $headerRow = Row::fromValues([
+                'name', 
+                'email', 
+                'nim', 
+                'major', 
+                'semester', 
+                'phone', 
+                'address', 
+                'password'
+            ]);
+            $writer->addRow($headerRow);
 
-            // Example row
-            $writer->addRow(Row::fromValues([
-                'Adnan Example', 'adnan@example.com', '12345678', 'Teknik Informatika', 3, '08123456789', 'Jl. Kampus No. 1', 'secret123'
-            ]));
+            // Example row 1
+            $exampleRow1 = Row::fromValues([
+                'Ahmad Fatih', 
+                'ahmad@example.com', 
+                '220101010', 
+                'Teknik Informatika', 
+                '3', 
+                '08123456789', 
+                'Jl. Kampus No. 123', 
+                'password123'
+            ]);
+            $writer->addRow($exampleRow1);
+
+            // Example row 2 (optional, biar lebih jelas)
+            $exampleRow2 = Row::fromValues([
+                'Budi Santoso', 
+                'budi@example.com', 
+                '220101011', 
+                'Sistem Informasi', 
+                '5', 
+                '08198765432', 
+                'Jl. Merdeka No. 45', 
+                'budi123'
+            ]);
+            $writer->addRow($exampleRow2);
 
             $writer->close();
-        });
+
+            // Download the file
+            return response()->download($tempFile, 'template_mahasiswa.xlsx')->deleteFileAfterSend(true);
+            
+        } catch (\Exception $e) {
+            // Clean up temp file if error
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+            throw $e;
+        }
     }
 }

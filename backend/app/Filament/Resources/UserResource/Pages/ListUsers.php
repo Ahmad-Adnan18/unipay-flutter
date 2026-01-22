@@ -14,6 +14,12 @@ class ListUsers extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\ExportAction::make()
+                ->exporter(\App\Filament\Exports\UserExporter::class)
+                ->label('Export Data Mahasiswa')
+                ->formats([
+                    \Filament\Actions\Exports\Enums\ExportFormat::Xlsx,
+                ]),
         ];
     }
 }

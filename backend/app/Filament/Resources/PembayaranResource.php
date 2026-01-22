@@ -63,14 +63,28 @@ class PembayaranResource extends Resource
                     ->counts('bills')
                     ->label('Total Tagihan'),
                  Tables\Columns\TextColumn::make('unpaid_bills_count')
-                    ->counts('bills', fn ($query) => $query->where('status', 'UNPAID'))
+                    ->counts('unpaidBills')
                     ->label('Tagihan Belum Lunas')
                     ->badge()
                     ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success'),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('has_tunggakan')
+                    ->label('Hanya Mahasiswa Tunggakan')
+                    ->query(fn ($query) => $query->whereHas('bills', fn ($q) => $q->where('status', 'UNPAID')))
+                    ->toggle(),
+                Tables\Filters\SelectFilter::make('major')
+                    ->label('Prodi')
+                    ->options(fn () => \App\Models\Major::pluck('name', 'name')->toArray()),
+                Tables\Filters\SelectFilter::make('semester')
+                    ->label('Semester')
+                    ->options(array_combine(range(1, 14), range(1, 14))),
             ])
+            ->modifyQueryUsing(fn ($query) => $query->where('is_admin', false))
+            ->description('Untuk mengirim pengingat tagihan via WhatsApp: pilih mahasiswa dengan mencentang checkbox, kemudian gunakan menu "Bulk actions" dan pilih opsi "Kirim WA Tagihan".')
+            ->emptyStateHeading('Belum ada data mahasiswa')
+            ->emptyStateDescription('Silakan tambahkan mahasiswa terlebih dahulu melalui menu Mahasiswa.')
+            ->emptyStateIcon('heroicon-o-users')
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Detail Tagihan'),
